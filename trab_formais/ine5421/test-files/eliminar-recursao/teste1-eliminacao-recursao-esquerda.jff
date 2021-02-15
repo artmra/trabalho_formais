@@ -1,2 +1,5 @@
+S
+S,A
+a,b,c
 S -> Aa | b
 A -> Ac | Sd | a

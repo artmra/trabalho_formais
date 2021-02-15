@@ -6,7 +6,7 @@ Repositório do trabalho de formais.
 Dentro do repositório do projeto execute o seguinte(é necessário ter o python3 e pip3 instalados):
 ```
 python3 -m venv venv
-source env/bin/activate
+source venv/bin/activate
 pip3 install -r requirements.txt
 ```
 

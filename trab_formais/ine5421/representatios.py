@@ -1,3 +1,36 @@
+class GR:
+    def __init__(self, meta_data, productions):
+        # checks the presence of an start_symbol
+        if str(meta_data[0]) == "":
+            raise Exception("There is no start symbol.")
+        self.start_symbol = str(meta_data[0])
+        self.non_terminals = [str(symbol) for symbol in meta_data[1].split(",")]
+        # checks if the start_symbol belongs to the non_terminals
+        if self.start_symbol not in self.non_terminals:
+            raise Exception("Start symbol doesn't belong to non teminals.")
+        self.terminals = [str(symbol) for symbol in meta_data[2].split(",")]
+        # create the productions
+        self.productions = dict()
+        for production in productions:
+            head, body = [str(p) for p in production.split("->")]
+            body = [str(b) for b in body.split("|")]
+            if head in self.productions.keys():
+                raise Exception("Must be only one line for each 'production head'.")
+            self.productions.update({head: body})
+        self.production_heads = list(self.productions.keys())
+
+    def __str__(self):
+        return f"Start symbol: {self.start_symbol}\n" \
+               f"Non terminals: {self.non_terminals}\n" \
+               f"Terminals: {self.terminals}\n" \
+               f"Productions: {self.productions}\n" \
+               f"Production heads: {self.production_heads}"
+
+    def write_to_file(self, filename):
+        productions = ""
+        pass
+
+
 class AF:
     def __init__(self, meta_data, transitions):
         self.n_states = int(meta_data[0])
@@ -35,12 +68,12 @@ class AF:
             raise Exception("Number of states value different from the real number of lines.")
 
     def __str__(self):
-        return f"{self.n_states}\n" \
-               f"{self.start_state}\n" \
-               f"{self.accept_states}\n" \
-               f"{self.transition_table}\n" \
-               f"is AFND: {self.is_afnd}\n" \
-               f"states: {self.states}"
+        return f"Number of states: {self.n_states}\n" \
+               f"Initial state: {self.start_state}\n" \
+               f"Accept states: {self.accept_states}\n" \
+               f"Transition table: {self.transition_table}\n" \
+               f"Is AFND: {self.is_afnd}\n" \
+               f"State names: {self.states}"
 
     def write_to_file(self, filename):
         transition_table_as_string = ""
