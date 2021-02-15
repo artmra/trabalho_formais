@@ -3,6 +3,9 @@ from rest_framework import viewsets
 from rest_framework import permissions
 from .serializers import UserSerializer, GroupSerializer
 
+from django.template import loader
+from django.http import HttpResponse
+
 
 # just a test view
 class UserViewSet(viewsets.ModelViewSet):
@@ -22,3 +25,11 @@ class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+# testing to import hmtl file as template
+def index(request):
+    template = loader.get_template('index.html')
+    context = {
+        'latest_question_list': ['a', 'b', 'c'],
+    }
+    return HttpResponse(template.render(context, request))
