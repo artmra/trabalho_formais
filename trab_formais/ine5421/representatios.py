@@ -27,8 +27,19 @@ class GR:
                f"Production heads: {self.production_heads}"
 
     def write_to_file(self, filename):
+        with open(filename, "w") as file:
+            file.write(self.string_in_file_format())
+
+    def string_in_file_format(self):
         productions = ""
-        pass
+        # format the production dict entries to the file format
+        for head, body in self.productions.items():
+            body_str = " | ".join(body)
+            productions = productions + f"{head} -> {body_str}\n"
+        return f"{self.start_symbol}\n" \
+               f"{','.join(self.non_terminals)}\n" \
+               f"{','.join(self.terminals)}\n" \
+               f"{productions}"
 
 
 class AF:
@@ -76,7 +87,12 @@ class AF:
                f"State names: {self.states}"
 
     def write_to_file(self, filename):
+        with open(filename, "w") as file:
+            file.write(self.string_in_file_format())
+
+    def string_in_file_format(self):
         transition_table_as_string = ""
+        # format the transition_table dict entries to the file format
         for origin_state, transitions in self.transition_table.items():
             if bool(transitions):
                 for symbol, destiny_states in transitions.items():
@@ -87,10 +103,9 @@ class AF:
                             destiny_states_as_string = destiny_states_as_string + f"-{destiny_state}"
                     transition_table_as_string = transition_table_as_string + \
                                                  f"{origin_state},{symbol},{destiny_states_as_string}\n"
+        return f"{self.n_states}\n" \
+               f"{self.start_state}\n" \
+               f"{','.join(self.accept_states)}\n" \
+               f"{','.join(self.alphabet)}\n" \
+               f"{transition_table_as_string}"
 
-        with open(filename, "w") as file:
-            file.write(f"{self.n_states}\n"
-                       f"{self.start_state}\n"
-                       f"{','.join(self.accept_states)}\n"
-                       f"{','.join(self.alphabet)}\n"
-                       f"{transition_table_as_string}")

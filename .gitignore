@@ -129,5 +129,7 @@ dmypy.json
 .pyre/
 
 # PyCharm folder
-
 .idea/
+
+# result_files
+/trab_formais/ine5421/test-files/resultados-testes/teste*-resultado.jff
