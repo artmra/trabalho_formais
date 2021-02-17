@@ -1,119 +1,35 @@
 <!DOCTYPE HTML>
+{% extends 'index.html' %}
 <html>
-	<head>
-		<title>Ling. Formais 2020.2</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<style>
-			body {
-			  font-family: "Lato", sans-serif;
-			}
 
-			.sidenav {
-			  height: 100%;
-			  width: 160px;
-			  position: fixed;
-			  z-index: 1;
-			  top: 0;
-			  left: 0;
-			  background-color: #111;
-			  overflow-x: hidden;
-			  padding-top: 20px;
-			}
-
-			.sidenav a {
-			  padding: 6px 8px 6px 16px;
-			  text-decoration: none;
-			  font-size: 25px;
-			  color: #818181;
-			  display: block;
-			}
-
-			.sidenav a:hover {
-			  color: #f1f1f1;
-			}
-
-			.main {
-			  margin-left: 160px; /* Same as the width of the sidenav */
-			  font-size: 28px; /* Increased text to enable scrolling */
-			  padding: 0px 10px;
-			}
-
-			@media screen and (max-height: 450px) {
-			  .sidenav {padding-top: 15px;}
-			  .sidenav a {font-size: 18px;}
-			}
-
-			.card {
-			  /* Add shadows to create the "card" effect */
-			  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
-			  transition: 0.3s;
-				width: 40%;
-				text-align: center;
-			}
-
-			/* On mouse-over, add a deeper shadow */
-			.card:hover {
-			  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
-			}
-
-			/* Add some padding inside the card container */
-			.container {
-			  padding: 2px 16px;
-			}
-
-            .card-header {
-                /*add values for card header*/
-            }
-
-			.header {
-				width: 100%;
-				background: #818181;
-			}
-
-			.header p{
-				color: #fff;
-				padding: 6px 8px 6px 16px;
-			  text-decoration: none;
-			  font-size: 25px;
-			  display: block;
-			}
-		</style>
-	</head>
-	<body>
-
-		<!-- Side navigation -->
-		<div class="sidenav">
-		  <a href="/">Home</a>
-		  <a href="#">Automatos Finitos</a>
-		  <a href="/gr">Gramáticas</a>
-		  <a href="/er">Expressões regulares</a>
+<body>
+	{% block body %}
+	<!-- Page content -->
+	<div class="main">
+		<div class="header">
+			<p> AUTOMATOS FINITOS </p>
 		</div>
 
-		<!-- Page content -->
-		<div class="main">
-			<div class="header">
-				<p> AUTOMATOS FINITOS </p>
+		<div class="card" style="width: 100%">
+			<div class="card-header">
+				<span style="text-align: left">Leitura de Automato Finito</span>
 			</div>
+			<div class="card-body">
+				<form action="/af">
+					<input type="file" id="afFileInput" name="afFile">
+					<input type="submit" value="Read File">
+					<br>
+				</form>
+				{% if content.AFstring %}
+				<textarea cols="50" rows="6" id="afTEXTAREA" readonly>{{content.AFstring}}</textarea>
+				{% endif %}
+			</div>
+			</form>
 
-            <div class="card" style="width: 100%">
-                <div class="card-header">
-                    <span style="text-align: left">Leitura de Automato Finito</span>
-                </div>
-                <div class="card-body">
-                    <form action="/af">
-                        <input type="file" id="afFileInput" name="afFile">
-                        <input type="submit" value="Read File">
-                        <br>
-                    </form>
-                    {% if content.AFstring %}
-                    <textarea cols="50" rows="6" id="afTEXTAREA" readonly>{{content.AFstring}}</textarea>
-                    {% endif %}
-                    </div>
-                </form>
-
-            </div>
 		</div>
+	</div>
+	{% endblock %}
 
-	</body>
+</body>
+
 </html>
