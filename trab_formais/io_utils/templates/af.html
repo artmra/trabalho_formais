@@ -15,8 +15,9 @@
 				<span style="text-align: left">Leitura de Automato Finito</span>
 			</div>
 			<div class="card-body">
-				<form action="/af">
-					<input type="file" id="afFileInput" name="afFile">
+				<form enctype="multipart/form-data" method="post" action="{% url 'file_upload' %}">
+					{% csrf_token %}
+					<input type="file" name="afFile" id="afFile">
 					<input type="submit" value="Read File">
 					<br>
 				</form>

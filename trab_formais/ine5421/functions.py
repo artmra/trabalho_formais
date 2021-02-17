@@ -1,4 +1,4 @@
-from representatios import AF, GR
+from .representatios import AF, GR
 
 
 def read_af(filename):
