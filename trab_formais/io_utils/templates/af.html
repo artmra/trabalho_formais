@@ -62,6 +62,10 @@
 			  padding: 2px 16px;
 			}
 
+            .card-header {
+                /*add values for card header*/
+            }
+
 			.header {
 				width: 100%;
 				background: #818181;
@@ -92,7 +96,23 @@
 				<p> AUTOMATOS FINITOS </p>
 			</div>
 
-            DALE CARAIO PRA AUTOMATO FINITO
+            <div class="card" style="width: 100%">
+                <div class="card-header">
+                    <span style="text-align: left">Leitura de Automato Finito</span>
+                </div>
+                <div class="card-body">
+                    <form action="/af">
+                        <input type="file" id="afFileInput" name="afFile">
+                        <input type="submit" value="Read File">
+                        <br>
+                    </form>
+                    {% if content.AFstring %}
+                    <textarea cols="50" rows="6" id="afTEXTAREA" readonly>{{content.AFstring}}</textarea>
+                    {% endif %}
+                    </div>
+                </form>
+
+            </div>
 		</div>
 
 	</body>

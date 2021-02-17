@@ -1,6 +1,7 @@
 from django.urls import path
+# from io_utils.views import UserViewSet, GroupViewSet
+from .views import index, finite_automata, gramatics, regex
 
-from io_utils.views import UserViewSet, GroupViewSet, index, finite_automata, gramatics, regex
 
 urlpatterns = [
     path('', index),
