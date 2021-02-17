@@ -1,9 +1,10 @@
 from django.urls import path
 
-from io_utils.views import UserViewSet, GroupViewSet, index
+from io_utils.views import UserViewSet, GroupViewSet, index, finite_automata, gramatics, regex
 
 urlpatterns = [
-    path('index/', index ),
-    path('user-view-set/', UserViewSet, name='user-view-set'), # just a test url
-    path('group-view-set/', GroupViewSet, name='group-view-set'), # just a test url
+    path('', index),
+    path('af', finite_automata),
+    path('gr', gramatics),
+    path('er', regex)
 ]

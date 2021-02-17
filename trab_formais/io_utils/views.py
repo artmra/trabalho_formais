@@ -33,3 +33,24 @@ def index(request):
         'latest_question_list': ['a', 'b', 'c'],
     }
     return HttpResponse(template.render(context, request))
+
+def finite_automata(request):
+    template = loader.get_template('af.html')
+    context = {
+        'latest_question_list': ['a', 'b', 'c'],
+    }
+    return HttpResponse(template.render(context, request))
+
+def gramatics(request):
+    template = loader.get_template('gr.html')
+    context = {
+        'latest_question_list': ['a', 'b', 'c'],
+    }
+    return HttpResponse(template.render(context, request))
+
+def regex(request):
+    template = loader.get_template('er.html')
+    context = {
+        'latest_question_list': ['a', 'b', 'c'],
+    }
+    return HttpResponse(template.render(context, request))
