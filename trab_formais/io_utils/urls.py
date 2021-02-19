@@ -8,6 +8,7 @@ urlpatterns = [
     path('', index),
     path('af', finite_automata),
     path('af/upload_file', file_upload, name='file_upload'),
+    path('af/save_file/', file_upload, name='save_file'),
     path('gr', gramatics),
     path('er', regex)
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

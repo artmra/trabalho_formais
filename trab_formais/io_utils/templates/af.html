@@ -21,9 +21,16 @@
 					<input type="submit" value="Read File">
 					<br>
 				</form>
-				{% if file_content %}
-					<textarea cols="60" rows="20" id="afTEXTAREA">{{file_content}}</textarea>
-				{% endif %}
+
+				<form action="{% url 'save_file' %}">
+					{% if file_content %}
+						<textarea cols="40" rows="20" id="afTEXTAREA">{{ file_content }}</textarea>
+					{% else %}
+						{{ form }}
+					{% endif %}
+					<br>
+					<input value="Salvar" type="submit"></input>
+				</form>
 			</div>
 		</div>
 	</div>
