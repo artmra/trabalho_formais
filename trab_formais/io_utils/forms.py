@@ -1,5 +1,6 @@
 from django import forms
-from .models import AF
+from .models import FiniteAutomata
+
 
 class UploadFileForm(forms.Form):
     afFileInput = forms.FileField()

@@ -6,6 +6,8 @@ from django.shortcuts import render
 from ine5421 import functions
 from django.conf import settings
 
+from .models import FiniteAutomata
+
 
 # testing to import hmtl file as template
 def index(request):
@@ -13,9 +15,11 @@ def index(request):
     context = {}
     return HttpResponse(template.render(context, request))
 
+
 def finite_automata(request):
     context = {}
     return render(request, 'af.html', context)
+
 
 def file_upload(request):
     uploaded_file = request.FILES['afFile']
@@ -33,7 +37,10 @@ def file_upload(request):
     context = {
         'file_content': automato,
     }
-    return render(request, 'file_content.html', context)
+
+    FiniteAutomata.objects.create(content=automato)
+
+    return render(request, 'af.html', context)
 
 def gramatics(request):
     template = loader.get_template('gr.html')

@@ -21,14 +21,13 @@
 					<input type="submit" value="Read File">
 					<br>
 				</form>
-				{% if content.AFstring %}
-				<textarea cols="50" rows="6" id="afTEXTAREA" readonly>{{content.AFstring}}</textarea>
+				{% if file_content %}
+					<textarea cols="60" rows="20" id="afTEXTAREA">{{file_content}}</textarea>
 				{% endif %}
 			</div>
-			</form>
-
 		</div>
 	</div>
+
 	{% endblock %}
 
 </body>
