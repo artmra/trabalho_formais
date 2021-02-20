@@ -40,7 +40,7 @@ def file_upload(request):
         print('File too big')
     output_file.close()
 
-    automato = functions.read_af(filename)
+    # automato = functions.read_af(filename)
     context = {
         'file_content': file_content,
     }
@@ -48,8 +48,17 @@ def file_upload(request):
     return render(request, 'af.html', context)
 
 
-def save_af_file(request):
-    pass
+def update_af_file(request):
+    file_content = request.POST['afContent']
+    filename = settings.MEDIA_ROOT + '/af_file'
+    with open(filename, 'w') as fout:
+        print(file_content, file=fout)
+
+    context = {
+        'file_content': file_content,
+    }
+
+    return render(request, 'af.html', context)
 
 
 def gramatics(request):

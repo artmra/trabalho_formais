@@ -22,14 +22,17 @@
 					<br>
 				</form>
 
-				<form action="{% url 'save_file' %}">
+				<form method="POST" action="{% url 'update_af_file' %}"> {% csrf_token %}
 					{% if file_content %}
-						<textarea cols="40" rows="20" id="afTEXTAREA">{{ file_content }}</textarea>
+						<textarea cols="40" rows="20" name="afContent" id="afContent">{{ file_content }}</textarea>
 					{% else %}
 						{{ form }}
 					{% endif %}
 					<br>
-					<input value="Salvar" type="submit"></input>
+					<input value="Atualizar Texto" type="submit" />
+
+					<br>
+					<a href="file_path" download>download</a>
 				</form>
 			</div>
 		</div>
