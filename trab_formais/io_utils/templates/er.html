@@ -1,19 +1,14 @@
-<!DOCTYPE HTML>
-{% extends 'index.html' %}
-<html>
-
-<body>
-	{% block body %}
-	<!-- Page content -->
-	<div class="main">
-		<div class="header">
-			<p> EXPRESSÕES REGULARES </p>
-		</div>
-
-		DALE CARAIO PRA EXPRESSAO REGULAR
-	</div>
-	{% endblock %}
-
-</body>
-
-</html>
+{% extends 'base.html' %}
+{% block title %} EXPRESSÕES REGULARES {% endblock title %}
+{% block header-text %}Leitura de Expressões Regulares{% endblock header-text %}
+{% block form1 %}
+	<form enctype="multipart/form-data" method="post" action="{% url 'upload_er_file' %}">
+{% endblock form1 %}
+{% block form2 %}<form method="POST" action="{% url 'update_er_file' %}">{% endblock form2 %}
+{% block choose-file %}<input type="file" name="erFile" id="erFile">{% endblock choose-file %}
+{% block text-area %}
+	<textarea cols="40" rows="20" name="erContent" id="erContent">{{ file_content }}</textarea>
+{% endblock text-area %}
+{% block download %}
+		<a href="{% url 'download_er_file' %}" class="btn btn-primary" download>Download</a>
+{% endblock download %}

@@ -6,10 +6,18 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.index),
+
     path('af', views.finite_automata),
-    path('af/upload_file', views.upload_file, name='upload_file'),
-    path('af/download_file', views.download_file, name='download_file'),
+    path('er', views.regular_expression),
+
+    path('af/upload_af_file', views.upload_af_file, name='upload_af_file'),
+    path('af/upload_er_file', views.upload_er_file, name='upload_er_file'),
+
+    path('af/download_af_file', views.download_af_file, name='download_af_file'),
+    path('af/download_er_file', views.download_er_file, name='download_er_file'),
+
     path('af/update_af_file/', views.update_af_file, name='update_af_file'),
+    path('af/update_er_file/', views.update_er_file, name='update_er_file'),
+
     path('gr', views.gramatics),
-    path('er', views.regex)
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

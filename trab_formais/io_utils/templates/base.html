@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+{% extends 'index.html' %}
+<html>
+
+<body>
+	{% block body %}
+	<!-- Page content -->
+	<div class="main">
+		<div class="header">
+			<p>{% block title %} TIPO {% endblock title %}</p>
+		</div>
+
+		<div class="card" style="width: 100%">
+			<div class="card-header">
+				<span style="text-align: left">{% block header-text %}Leitura de Tipo{% endblock header-text %}</span>
+			</div>
+			<div class="card-body">
+				{% block form1 %}
+					<form enctype="multipart/form-data" method="post" action="{% url 'upload_method' %}">
+				{% endblock form1 %}
+					{% csrf_token %}
+					{% block choose-file %}<input type="file" name="file-type" id="file-type">{% endblock choose-file %}
+					<input type="submit" value="Read File">
+					<br>
+				</form>
+
+				{% block form2 %}<form method="POST" action="{% url 'method' %}">{% endblock form2 %}
+					{% csrf_token %}
+					{% if file_content %}
+						{% block text-area %}textarea{% endblock text-area %}
+					{% else %}
+						{{ form }}
+					{% endif %}
+					<br>
+					<input value="Atualizar Texto" type="submit" />
+
+					<br>
+					{% block download %}
+						<a href="{% url 'method' %}" class="btn btn-primary" download>Download</a>
+					{% endblock download %}
+
+				</form>
+			</div>
+		</div>
+	</div>
+
+	{% endblock %}
+
+</body>
+
+</html>

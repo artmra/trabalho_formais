@@ -1,46 +1,14 @@
-<!DOCTYPE HTML>
-{% extends 'index.html' %}
-<html>
-
-<body>
-	{% block body %}
-	<!-- Page content -->
-	<div class="main">
-		<div class="header">
-			<p> AUTOMATOS FINITOS </p>
-		</div>
-
-		<div class="card" style="width: 100%">
-			<div class="card-header">
-				<span style="text-align: left">Leitura de Automato Finito</span>
-			</div>
-			<div class="card-body">
-				<form enctype="multipart/form-data" method="post" action="{% url 'upload_file' %}">
-					{% csrf_token %}
-					<input type="file" name="afFile" id="afFile">
-					<input type="submit" value="Read File">
-					<br>
-				</form>
-
-				<form method="POST" action="{% url 'update_af_file' %}">
-					{% csrf_token %}
-					{% if file_content %}
-						<textarea cols="40" rows="20" name="afContent" id="afContent">{{ file_content }}</textarea>
-					{% else %}
-						{{ form }}
-					{% endif %}
-					<br>
-					<input value="Atualizar Texto" type="submit" />
-
-					<br>
-					<a href="{% url 'download_file' %}" class="btn btn-primary" download>Download</a>
-				</form>
-			</div>
-		</div>
-	</div>
-
-	{% endblock %}
-
-</body>
-
-</html>
+{% extends 'base.html' %}
+{% block title %} AUTÔMATOS FINITOS {% endblock title %}
+{% block header-text %}Leitura de Autômato Finito{% endblock header-text %}
+{% block form1 %}
+	<form enctype="multipart/form-data" method="post" action="{% url 'upload_af_file' %}">
+{% endblock form1 %}
+{% block form2 %}<form method="POST" action="{% url 'update_af_file' %}">{% endblock form2 %}
+{% block choose-file %}<input type="file" name="afFile" id="afFile">{% endblock choose-file %}
+{% block text-area %}
+	<textarea cols="40" rows="20" name="afContent" id="afContent">{{ file_content }}</textarea>
+{% endblock text-area %}
+{% block download %}
+		<a href="{% url 'download_af_file' %}" class="btn btn-primary" download>Download</a>
+{% endblock download %}
