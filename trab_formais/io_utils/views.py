@@ -5,10 +5,10 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from ine5421 import functions
 from django.conf import settings
-
 from .models import FiniteAutomata
 from .forms import FiniteAutomataForm
 
+FILENAME_AF = settings.MEDIA_ROOT+'/af_file'
 
 # testing to import hmtl file as template
 def index(request):
@@ -27,11 +27,10 @@ def finite_automata(request):
     return render(request, 'af.html', context)
 
 
-def file_upload(request):
+def upload_file(request):
     uploaded_file = request.FILES['afFile']
     # writing file for temp use
-    filename = settings.MEDIA_ROOT+'/af_file'
-    output_file = open(filename, 'w')
+    output_file = open(FILENAME_AF, 'w')
     # Check size of file, only open if its not too big
     if not uploaded_file.multiple_chunks():
         file_content = str(uploaded_file.read(), 'utf-8')
@@ -47,6 +46,11 @@ def file_upload(request):
 
     return render(request, 'af.html', context)
 
+def download_file(request):
+    response = HttpResponse(open(FILENAME_AF, 'rb').read())
+    response['Content-Type'] = 'text/plain'
+    response['Content-Disposition'] = 'attachment; filename=AF.txt'
+    return response
 
 def update_af_file(request):
     file_content = request.POST['afContent']

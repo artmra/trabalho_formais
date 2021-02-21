@@ -15,14 +15,15 @@
 				<span style="text-align: left">Leitura de Automato Finito</span>
 			</div>
 			<div class="card-body">
-				<form enctype="multipart/form-data" method="post" action="{% url 'file_upload' %}">
+				<form enctype="multipart/form-data" method="post" action="{% url 'upload_file' %}">
 					{% csrf_token %}
 					<input type="file" name="afFile" id="afFile">
 					<input type="submit" value="Read File">
 					<br>
 				</form>
 
-				<form method="POST" action="{% url 'update_af_file' %}"> {% csrf_token %}
+				<form method="POST" action="{% url 'update_af_file' %}">
+					{% csrf_token %}
 					{% if file_content %}
 						<textarea cols="40" rows="20" name="afContent" id="afContent">{{ file_content }}</textarea>
 					{% else %}
@@ -32,7 +33,7 @@
 					<input value="Atualizar Texto" type="submit" />
 
 					<br>
-					<a href="file_path" download>download</a>
+					<a href="{% url 'download_file' %}" class="btn btn-primary" download>Download</a>
 				</form>
 			</div>
 		</div>
