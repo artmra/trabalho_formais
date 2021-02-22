@@ -1,18 +1,22 @@
-<!DOCTYPE HTML>
-{% extends 'index.html' %}
-<html>
-
-<body>
-	{% block body %}
-	<!-- Page content -->
-	<div class="main">
-		<div class="header">
-			<p> GRAMATICAS </p>
-		</div>
-
-		DALE CARAIO PRA GRAMATICAS
-	</div>
-	{% endblock %}
-</body>
-
-</html>
+{% extends 'base.html' %}
+{% block title %}
+	GRAMÁTICA REGULAR
+{% endblock title %}
+{% block header-text %}
+	Leitura de Gramática Regular
+{% endblock header-text %}
+{% block form1 %}
+	<form enctype="multipart/form-data" method="POST" action="{% url 'options_gr' %}">
+{% endblock form1 %}
+{% block choose-file %}
+	<input type="file" name="grFile" id="grFile">
+{% endblock choose-file %}
+{% block text-area %}
+	<textarea cols="40" rows="20" name="file_content" id="file_content">{{ file_content }}</textarea>
+{% endblock text-area %}
+{% block update-option %}
+	<input type="submit" value="Atualizar GR" name="option"/>
+{% endblock update-option %}
+{% block download %}
+	<a href="{% url 'download_gr' %}" class="btn btn-primary" download>Download</a>
+{% endblock download %}

@@ -15,7 +15,3 @@ def read_gr(filename):
         meta_data = [lines[x].replace(" ", "").strip() for x in range(3)]
         productions = [lines[x].replace(" ", "").strip() for x in range(3, len(lines))]
     return GR(meta_data, productions)
-    # count = 0
-    # for x in lines:
-    #     count += 1
-    #     print("Line {}: {}".format(count, x))

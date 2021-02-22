@@ -1,14 +1,22 @@
 {% extends 'base.html' %}
-{% block title %} AUTÔMATOS FINITOS {% endblock title %}
-{% block header-text %}Leitura de Autômato Finito{% endblock header-text %}
+{% block title %}
+	AUTÔMATOS FINITOS
+{% endblock title %}
+{% block header-text %}
+	Leitura de Autômato Finito
+{% endblock header-text %}
 {% block form1 %}
-	<form enctype="multipart/form-data" method="post" action="{% url 'upload_af_file' %}">
+	<form enctype="multipart/form-data" method="POST" action="{% url 'options_af' %}">
 {% endblock form1 %}
-{% block form2 %}<form method="POST" action="{% url 'update_af_file' %}">{% endblock form2 %}
-{% block choose-file %}<input type="file" name="afFile" id="afFile">{% endblock choose-file %}
+{% block choose-file %}
+	<input type="file" name="afFile" id="afFile">
+{% endblock choose-file %}
 {% block text-area %}
-	<textarea cols="40" rows="20" name="afContent" id="afContent">{{ file_content }}</textarea>
+	<textarea cols="40" rows="20" name="file_content" id="file_content">{{ file_content }}</textarea>
 {% endblock text-area %}
+{% block update-option %}
+	<input type="submit" value="Atualizar AF" name="option"/>
+{% endblock update-option %}
 {% block download %}
-		<a href="{% url 'download_af_file' %}" class="btn btn-primary" download>Download</a>
+		<a href="{% url 'download_af' %}" class="btn btn-primary" download>Download</a>
 {% endblock download %}

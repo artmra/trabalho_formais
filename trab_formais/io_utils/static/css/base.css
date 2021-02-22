@@ -71,3 +71,10 @@ body {
     font-size: 25px;
     display: block;
   }
+
+  .error{
+    color: red;
+    padding: 1px 1px 1px 1px;
+    font-size: 13px;
+
+  }

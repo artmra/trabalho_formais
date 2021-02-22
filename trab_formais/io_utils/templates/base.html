@@ -16,15 +16,18 @@
 			</div>
 			<div class="card-body">
 				{% block form1 %}
-					<form enctype="multipart/form-data" method="post" action="{% url 'upload_method' %}">
+					<form enctype="multipart/form-data" method="POST" action="{% url 'upload_method' %}">
 				{% endblock form1 %}
 					{% csrf_token %}
 					{% block choose-file %}<input type="file" name="file-type" id="file-type">{% endblock choose-file %}
-					<input type="submit" value="Read File">
+					<!--	esse bloco, tal como o de atualização, pode ser desnecessário					-->
+					{% block read-button %}
+						<input type="submit" value="Ler arquivo" name="option">
+					{% endblock read-button %}
+					{% if error %}
+						<div class="error">{{ error }}</div>
+					{% endif %}
 					<br>
-				</form>
-
-				{% block form2 %}<form method="POST" action="{% url 'method' %}">{% endblock form2 %}
 					{% csrf_token %}
 					{% if file_content %}
 						{% block text-area %}textarea{% endblock text-area %}
@@ -32,8 +35,9 @@
 						{{ form }}
 					{% endif %}
 					<br>
-					<input value="Atualizar Texto" type="submit" />
-
+					{% block update-option %}
+						<input type="submit" value="Atualizar" name="option"/>
+					{% endblock update-option %}
 					<br>
 					{% block download %}
 						<a href="{% url 'method' %}" class="btn btn-primary" download>Download</a>

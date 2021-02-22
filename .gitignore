@@ -133,3 +133,6 @@ dmypy.json
 
 # result_files
 /trab_formais/ine5421/test-files/resultados-testes/teste*-resultado.jff
+
+# temp_files
+/trab_formais/media/*
