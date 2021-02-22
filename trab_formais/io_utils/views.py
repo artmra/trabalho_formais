@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.conf import settings
 
 from .forms import InputForm
-# from trab_formais.ine5421.functions import read_af, read_gr
+from ine5421.functions import read_af, read_gr
 
 FILENAME_AF = settings.MEDIA_ROOT + '/af_file'
 FILENAME_ER = settings.MEDIA_ROOT + '/er_file'
@@ -74,7 +74,12 @@ def upload_af_file(request):
     else:
         print('File too big')
     output_file.close()
-    # af = read_af(FILENAME_AF)
+
+    try:
+        af = read_af(FILENAME_AF)
+    except:
+        context = {'error': ''}
+
     context = {
         'file_content': file_content,
     }
@@ -142,7 +147,12 @@ def upload_gr_file(request):
     else:
         print('File too big')
     output_file.close()
-    # gr = read_gr(FILENAME_GR)
+
+    try:
+        gr = read_gr(FILENAME_GR)
+    except:
+        context = {'error': ''}
+        
     context = {
         'file_content': file_content,
     }

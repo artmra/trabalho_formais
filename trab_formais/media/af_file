@@ -1,1 +1,2 @@
-re: (a|b)*abb#
+S -> aA | a | &
+A -> bA | a
