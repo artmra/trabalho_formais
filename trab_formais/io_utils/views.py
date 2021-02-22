@@ -45,7 +45,6 @@ def update_af_file(request):
         context = {'error': 'Não há nada para editar.',
                    'form': InputForm(), }
         return render(request, 'af.html', context)
-    file_content = request.POST['file_content']
     filename = settings.MEDIA_ROOT + '/af_file'
     with open(filename, 'w') as fout:
         print(file_content, file=fout)
@@ -56,33 +55,38 @@ def update_af_file(request):
 
 
 def upload_af_file(request):
+    context = dict()
     try:
         uploaded_file = request.FILES['afFile']
     except:
-        context = {'error': 'Você não selecionou um arquivo'}
+        context.update({'error': 'Você não selecionou um arquivo.'})
         if 'file_content' in request.POST.keys():
             context.update({'file_content': request.POST['file_content']})
         else:
             context.update({'form': InputForm()})
-        return render(request, 'af.html', context)
-    # writing file for temp use
-    output_file = open(FILENAME_AF, 'w')
-    # Check size of file, only open if its not too big
-    if not uploaded_file.multiple_chunks():
-        file_content = str(uploaded_file.read(), 'utf-8')
-        output_file.write(file_content)
+    if 'error' not in context.keys():
+        # writing file for temp use
+        output_file = open(FILENAME_AF, 'w')
+        # Check size of file, only open if its not too big
+        if not uploaded_file.multiple_chunks():
+            file_content = str(uploaded_file.read(), 'utf-8')
+            output_file.write(file_content)
+        else:
+            print('File too big')
+        output_file.close()
+
+        try:
+            af = read_af(FILENAME_AF)
+        except Exception as e:
+            context.update({'error': e})
+
+    if 'error' not in context.keys():
+        context.update({'file_content': file_content})
     else:
-        print('File too big')
-    output_file.close()
-
-    try:
-        af = read_af(FILENAME_AF)
-    except:
-        context = {'error': ''}
-
-    context = {
-        'file_content': file_content,
-    }
+        if 'file_content' in request.POST.keys():
+            context.update({'file_content': request.POST['file_content']})
+        else:
+            context.update({'form': InputForm()})
     return render(request, 'af.html', context)
 
 
