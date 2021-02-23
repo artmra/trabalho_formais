@@ -28,7 +28,7 @@ Caso seja necessário fazer migrações basta usar:
 ```
 python manage.py migrate
 ```
-O endereço do site se encontra em: [localhost:8000](localhost:8000)
+O endereço do site se encontra em: [localhost:8000](http://localhost:8000/)
 
 ## Formato de Arquivos
 Arquivos testes em: \
