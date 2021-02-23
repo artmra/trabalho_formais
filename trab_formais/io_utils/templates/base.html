@@ -24,8 +24,11 @@
 					{% block read-button %}
 						<input type="submit" value="Ler arquivo" name="option">
 					{% endblock read-button %}
-					{% if error %}
-						<div class="error">{{ error }}</div>
+					{% if error1 %}
+						<li class="error">{{ error1 }}</li>
+					{% endif %}
+					{% if error2 %}
+						<li class="error">{{ error2 }}</li>
 					{% endif %}
 					<br>
 					{% csrf_token %}
