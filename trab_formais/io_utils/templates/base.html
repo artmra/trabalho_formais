@@ -35,7 +35,9 @@
 					{% if file_content %}
 						{% block text-area %}textarea{% endblock text-area %}
 					{% else %}
+						{% block load_specific_form %}
 						{{ form }}
+						{% endblock load_specific_form %}
 					{% endif %}
 					<br>
 					{% block update-option %}

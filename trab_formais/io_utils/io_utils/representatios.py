@@ -65,6 +65,7 @@ class GR:
                 if head == "":
                     line = str(4 + productions.index(production))
                     raise Exception(self.ERRO_5 + line + ")")
+                # TODO: checar se todas os símbolos fazem parte do conjunto de terminais ou não terminais
             except:
                 line = str(4 + productions.index(production))
                 raise Exception(self.ERRO_4 + line + ")")

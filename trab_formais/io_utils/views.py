@@ -1,11 +1,11 @@
+from django import forms
 from django.template import loader
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.conf import settings
 
-from .forms import InputForm
-from .io_utils.functions import read_af_file, read_gr_file, read_af_string, read_gr_string
-from .io_utils.representatios import GR, AF
+from .forms import InputForm, GrammarForm
+from .io_utils.functions import read_gr_file, read_af_string, read_gr_string
 from json import dumps
 
 FILENAME_AF = settings.MEDIA_ROOT + '/af_file'
@@ -13,7 +13,6 @@ FILENAME_ER = settings.MEDIA_ROOT + '/er_file'
 FILENAME_GR = settings.MEDIA_ROOT + '/gr_file'
 
 
-# testing to import hmtl file as template
 def index(request):
     template = loader.get_template('index.html')
     context = {}
@@ -33,8 +32,6 @@ def finite_automata(request):
 
 
 def update_or_upload_af(request):
-    # talvez não seja a melhor prática, mas por enquanto permite ter acesso a todos os campos do formulário nas
-    # duas funções
     if request.POST['option'] == 'Ler arquivo':
         return upload_af_file(request)
     elif request.POST['option'] == 'Atualizar AF':
@@ -82,8 +79,7 @@ def upload_af_file(request):
         output_file.close()
 
         try:
-            af = read_af_file(FILENAME_AF)
-            # af = read_af_string(file_content)
+            af = read_af_string(file_content)
             context.update({'afnodes': dumps(af.get_states_as_vis_nodes()),
                             'afedges': dumps(af.get_transitions_as_vis_edges()),
                             })
@@ -123,7 +119,7 @@ def download_af_file(request):
 #######################################################################################################################
 
 def regular_grammar(request):
-    form = InputForm()
+    form = GrammarForm()
     context = {
         'form': form,
     }
@@ -131,8 +127,6 @@ def regular_grammar(request):
 
 
 def update_or_upload_gr(request):
-    # talvez não seja a melhor prática, mas por enquanto permite ter acesso a todos os campos do formulário nas
-    # duas funções
     if request.POST['option'] == 'Ler arquivo':
         return upload_gr_file(request)
     elif request.POST['option'] == 'Atualizar GR':
@@ -142,35 +136,40 @@ def update_or_upload_gr(request):
 def update_gr_file(request):
     # TODO:impedir que as linhas vazias sejam excluídas
     context = dict()
+    form = GrammarForm()
     try:
-        file_content = request.POST['file_content']
+        file_content = request.POST['content']
+        if file_content == "":
+            context.update({'error1': 'Não há nada para editar.',
+                            'form': GrammarForm()})
     except:
         context.update({'error1': 'Não há nada para editar.',
-                        'form': InputForm()})
-        return render(request, 'gr.html', context)
+                        'form': GrammarForm()})
     if 'error1' not in context.keys():
         filename = settings.MEDIA_ROOT + '/gr_file'
         try:
             gr = read_gr_string(file_content)
             with open(filename, 'w') as fout:
                 print(file_content, file=fout)
+            customize_gr_form(form, gr, file_content)
+            context.update({'form': form})
         except Exception as e:
             context.update({'error1': e})
-        finally:
-            context.update({'file_content': file_content})
+            context.update({'form': GrammarForm()})
     return render(request, 'gr.html', context)
 
 
 def upload_gr_file(request):
     # TODO:impedir que as linhas vazias sejam excluídas
     context = dict()
+    form = GrammarForm()
     try:
         uploaded_file = request.FILES['grFile']
     except:
         context.update({'error1': 'Você não selecionou um arquivo.'})
     if 'error1' not in context.keys():
         # writing file for temp use
-        output_file = open(FILENAME_AF, 'w')
+        output_file = open(FILENAME_GR, 'w')
         # Check size of file, only open if its not too big
         if not uploaded_file.multiple_chunks():
             file_content = str(uploaded_file.read(), 'utf-8')
@@ -180,24 +179,39 @@ def upload_gr_file(request):
         output_file.close()
 
         try:
-            gr = read_gr_file(FILENAME_AF)
+            gr = read_gr_file(FILENAME_GR)
         except Exception as e:
             context.update({'error1': e})
 
     if 'error1' not in context.keys():
-        context.update({'file_content': file_content})
+        customize_gr_form(form, gr, file_content)
+        context.update({'form': form})
     else:
-        if 'file_content' in request.POST.keys():
-            gr_string = request.POST['file_content']
+        if 'content' in request.POST.keys():
+            gr_string = request.POST['content']
             try:
                 gr = read_gr_string(gr_string)
-                context.update({'file_content': gr_string})
+                customize_gr_form(form, gr, gr_string)
+                context.update({'form': form})
             except Exception as e:
                 context.update({'error2': e})
-                context.update({'file_content': gr_string})
+                context.update({'form': GrammarForm()})
         else:
-            context.update({'form': InputForm()})
+            context.update({'form': GrammarForm()})
     return render(request, 'gr.html', context)
+
+
+def customize_gr_form(form, gr, file_content):
+    form.fields['content'].initial = file_content
+    x = '-1'
+    for k in list(gr.productions.keys()):
+        x = str(int(x) + 1)
+        y = '0'
+        form.fields['skip' + x] = forms.BooleanField(widget=forms.HiddenInput())
+        form.fields[x + y] = forms.CharField(label=False, required=False, initial=k)
+        for v in gr.productions[k]:
+            y = str(int(y) + 1)
+            form.fields[x + y] = forms.CharField(label=False, required=False, initial=v)
 
 
 def download_gr_file(request):
@@ -222,8 +236,6 @@ def regular_expression(request):
 
 
 def update_or_upload_er(request):
-    # talvez não seja a melhor prática, mas por enquanto permite ter acesso a todos os campos do formulário nas
-    # duas funções
     if request.POST['option'] == 'Ler arquivo':
         return upload_er_file(request)
     elif request.POST['option'] == 'Atualizar ER':
@@ -231,7 +243,7 @@ def update_or_upload_er(request):
 
 
 def update_er_file(request):
-    # TODO:impedir que as linhas vazias sejam excluídas
+    # TODO: impedir que as linhas vazias sejam excluídas
     # TODO: implementar detecção de erros no processo de atualização;
     try:
         file_content = request.POST['file_content']
@@ -250,7 +262,7 @@ def update_er_file(request):
 
 
 def upload_er_file(request):
-    # TODO:impedir que as linhas vazias sejam excluídas
+    # TODO: impedir que as linhas vazias sejam excluídas
     # TODO: criar estrutura para manipulação de ER; implementar detecção de erros no processo de leitura;
     try:
         uploaded_file = request.FILES['erFile']

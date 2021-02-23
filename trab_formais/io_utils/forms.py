@@ -1,5 +1,4 @@
 from django import forms
-from .models import FiniteAutomata
 
 
 class InputForm(forms.Form):
@@ -7,3 +6,7 @@ class InputForm(forms.Form):
         'cols': '40',
         'rows': '20',
     }))
+
+
+class GrammarForm(InputForm):
+    pass

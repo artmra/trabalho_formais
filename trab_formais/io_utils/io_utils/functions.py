@@ -11,15 +11,15 @@ def read_af_file(filename):
 
 
 def read_af_string(string):
-    lines = string.split("\n")
+    lines = string.splitlines()
     meta_data, transitions = read_lines_af(lines)
     return AF(meta_data, transitions)
 
 
 def read_lines_af(lines):
     try:
-        meta_data = [lines[x].replace('\r', '').replace(" ", "").strip() for x in range(4)]
-        transitions = [lines[x].replace('\r', '').replace(" ", "").strip() for x in range(4, len(lines))]
+        meta_data = [lines[x].replace(" ", "").strip() for x in range(4)]
+        transitions = [lines[x].replace(" ", "").strip() for x in range(4, len(lines))]
     except:
         raise Exception(ERROR + "AF.")
     return meta_data, transitions
@@ -33,15 +33,15 @@ def read_gr_file(filename):
 
 
 def read_gr_string(string):
-    lines = string.split("\n")
+    lines = string.splitlines()
     meta_data, productions = read_gr_lines(lines)
     return GR(meta_data, productions)
 
 
 def read_gr_lines(lines):
     try:
-        meta_data = [lines[x].replace('\r', '').replace(" ", "").strip() for x in range(3)]
-        productions = [lines[x].replace('\r', '').replace(" ", "").strip() for x in range(3, len(lines))]
+        meta_data = [lines[x].replace(" ", "").strip() for x in range(3)]
+        productions = [lines[x].replace(" ", "").strip() for x in range(3, len(lines))]
     except:
         raise Exception(ERROR + "GR.")
     return meta_data, productions

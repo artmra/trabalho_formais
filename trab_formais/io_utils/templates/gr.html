@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 {% block title %}
 	GRAMÁTICA REGULAR
-{% endblock title %}
+{% endblock title %}    try:
+        meta_data = [lines[x].replace('\r', '').replace(" ", "").strip() for x in range(4)]
+        transitions = [lines[x].replace('\r', '').replace(" ", "").strip() for x in range(4, len(lines))]
+    except:
+        raise Exception(ERROR + "AF.")
+    return meta_data, transitions
 {% block header-text %}
 	Leitura de Gramática Regular
 {% endblock header-text %}
@@ -11,9 +16,30 @@
 {% block choose-file %}
 	<input type="file" name="grFile" id="grFile">
 {% endblock choose-file %}
-{% block text-area %}
-	<textarea cols="40" rows="20" name="file_content" id="file_content">{{ file_content }}</textarea>
-{% endblock text-area %}
+{% block load_specific_form %}
+	<div>
+	{% for field in form %}
+    	{{ field.errors }}
+        {% if field.name|slice:":4" == 'skip' %}
+       	    </div><div id="gr" style="text-align: left">{{ field }}
+        {% else %}
+           	{% if field.name == 'content' %}
+               	{{ field }}
+                <br/>
+            {% else %}
+              	{% if field.name|slice:"1:" == '0' %}
+                   	{{ field }}<h6> -></h6>
+                {% else %}
+                   	{{ field }}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+        {% if field.help_text %}
+           	<p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+    {% endfor %}
+	</div>
+{% endblock load_specific_form %}
 {% block update-option %}
 	<input type="submit" value="Atualizar GR" name="option"/>
 {% endblock update-option %}
