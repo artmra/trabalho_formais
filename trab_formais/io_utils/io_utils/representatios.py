@@ -272,29 +272,63 @@ class AF:
                f"{','.join(self.alphabet)}\n" \
                f"{transition_table_as_string}"
 
-    def get_states_as_viz_nodes(self):
+    def get_states_as_vis_nodes(self):
         """
         :return: list
             lista de dicionários contendo os dados necessários para criar nodes no viz.
         """
         nodes = list()
+
         for state in self.states:
+            color_options = {'border': '#004582',
+                             'background': '#91D4ED'}
+            state_label = state
+
+            if state == self.start_state:
+                state_label ='->'+state
+                color_options = {'border': '#F25D00',
+                                 'background': '#EEB679'}
+
+            if state in self.accept_states:
+                state_label = '*' + state
+                color_options = {'border': '#008239',
+                                 'background': '#91EDAC'}
+
             nodes.append({'id': self.states.index(state),
-                          'Label': state})
+                          'label': state_label,
+                          'color': color_options})
         return nodes
 
-    def get_transitions_as_viz_edges(self):
+    def get_transitions_as_vis_edges(self):
         """
         :return: list
             lista de dicionários contendo os dados necessários para criar transições no viz.
         """
+        edges_control = list()
         edges = list()
         for init_state, transitions in self.transition_table.items():
             for symbol, reachable_states in transitions.items():
-                for state in reachable_states:
+                for index, state in enumerate(reachable_states):
+                    factor = 0
+                    if index == 0:
+                        factor = 0
+                    elif index%2 == 0:
+                        factor = index*0.2
+                    else:
+                        factor = index*0.2*(-1)
+
+                    have_ocurred = edges_control.count([state, init_state])
+
+                    if have_ocurred > 0:
+                        factor = factor + have_ocurred*0.2
+
+                    edges_control.append([init_state, state])
+
                     edges.append({
                         'from': init_state,
                         'to': state,
-                        'label': symbol
+                        'label': symbol,
+                        'smooth': {'type': 'curvedCCW', 'roundness': factor},
+                        'color': '#6b705c'
                     })
         return edges

@@ -41,12 +41,13 @@
 					{% block update-option %}
 						<input type="submit" value="Atualizar" name="option"/>
 					{% endblock update-option %}
-					<br>
 					{% block download %}
-						<a href="{% url 'method' %}" class="btn btn-primary" download>Download</a>
+						<button href="{% url 'method' %}" download>Download</button>
 					{% endblock download %}
 
 				</form>
+				{% block visualize-infos %}
+				{% endblock visualize-infos %}
 			</div>
 		</div>
 	</div>

@@ -18,5 +18,55 @@
 	<input type="submit" value="Atualizar AF" name="option"/>
 {% endblock update-option %}
 {% block download %}
-		<a href="{% url 'download_af' %}" class="btn btn-primary" download>Download</a>
+		<form>
+		  <button formaction="{% url 'download_af' %}">Download</button>
+		</form>
 {% endblock download %}
+{% block visualize-infos %}
+		<div id="graph-area">
+		</div>
+	<script type="text/javascript">
+		var afnodes = JSON.parse("{{afnodes|escapejs}}");
+		var afedges = JSON.parse("{{afedges|escapejs}}");
+		console.log(data)
+		// create an array with nodes
+		var nodes = new vis.DataSet(afnodes);
+
+		// create an array with edges
+		var edges = new vis.DataSet(afedges);
+
+		// create a network
+		var container = document.getElementById('graph-area');
+
+		// provide the data in the vis format
+		var data = {
+			nodes: nodes,
+			edges: edges
+		};
+
+		var options = {
+			 edges: {
+				 arrows: {
+					 to: {
+						 enabled: true,
+						 imageHeight: undefined,
+						 imageWidth: undefined,
+						 scaleFactor: 1,
+						 src: undefined,
+						 type: "arrow"
+					 }
+				 }
+			 },
+			interaction: {
+			 	selectable: false,
+    			selectConnectedEdges: false,
+			}
+		};
+
+		// initialize your network!
+		var network = new vis.Network(container, data, options);
+		network.setOptions({
+            physics: {enabled:false}
+    	});
+	</script>
+{% endblock visualize-infos %}

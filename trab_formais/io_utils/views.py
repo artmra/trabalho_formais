@@ -5,6 +5,8 @@ from django.conf import settings
 
 from .forms import InputForm
 from .io_utils.functions import read_af_file, read_gr_file, read_af_string, read_gr_string
+from .io_utils.representatios import GR, AF
+from json import dumps
 
 FILENAME_AF = settings.MEDIA_ROOT + '/af_file'
 FILENAME_ER = settings.MEDIA_ROOT + '/er_file'
@@ -80,7 +82,8 @@ def upload_af_file(request):
         output_file.close()
 
         try:
-            af = read_af_file(FILENAME_AF)
+            #af = read_af_file(FILENAME_AF)
+            af = read_af_string(file_content)
             # OBTER edges e estados AQUI
         except Exception as e:
             context.update({'error1': e})
@@ -99,6 +102,16 @@ def upload_af_file(request):
                 context.update({'file_content': af_string})
         else:
             context.update({'form': InputForm()})
+    nodes = af.get_states_as_vis_nodes()
+    edges = af.get_transitions_as_vis_edges()
+    afnodes = dumps(nodes)
+    afedges = dumps(edges)
+    context.update({
+        'file_content': file_content,
+        'afnodes': afnodes,
+        'afedges': afedges
+    })
+
     return render(request, 'af.html', context)
 
 
