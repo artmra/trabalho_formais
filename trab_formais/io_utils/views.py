@@ -82,9 +82,11 @@ def upload_af_file(request):
         output_file.close()
 
         try:
-            #af = read_af_file(FILENAME_AF)
-            af = read_af_string(file_content)
-            # OBTER edges e estados AQUI
+            af = read_af_file(FILENAME_AF)
+            # af = read_af_string(file_content)
+            context.update({'afnodes': dumps(af.get_states_as_vis_nodes()),
+                            'afedges': dumps(af.get_transitions_as_vis_edges()),
+                            })
         except Exception as e:
             context.update({'error1': e})
 
@@ -95,23 +97,16 @@ def upload_af_file(request):
             af_string = request.POST['file_content']
             try:
                 af = read_af_string(af_string)
-                # OBTER edges e estados AQUI
-                context.update({'file_content': af_string})
+                # obtém os dados necessários para gerar os grafos aqui
+                context.update({'file_content': af_string,
+                                'afnodes': dumps(af.get_states_as_vis_nodes()),
+                                'afedges': dumps(af.get_transitions_as_vis_edges()),
+                                })
             except Exception as e:
                 context.update({'error2': e})
                 context.update({'file_content': af_string})
         else:
             context.update({'form': InputForm()})
-    nodes = af.get_states_as_vis_nodes()
-    edges = af.get_transitions_as_vis_edges()
-    afnodes = dumps(nodes)
-    afedges = dumps(edges)
-    context.update({
-        'file_content': file_content,
-        'afnodes': afnodes,
-        'afedges': afedges
-    })
-
     return render(request, 'af.html', context)
 
 
