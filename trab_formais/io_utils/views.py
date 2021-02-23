@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.conf import settings
 
 from .forms import InputForm
-from ine5421.functions import read_af_file, read_gr_file, read_af_string, read_gr_string
+from .io_utils.functions import read_af_file, read_gr_file, read_af_string, read_gr_string
 
 FILENAME_AF = settings.MEDIA_ROOT + '/af_file'
 FILENAME_ER = settings.MEDIA_ROOT + '/er_file'
@@ -81,6 +81,7 @@ def upload_af_file(request):
 
         try:
             af = read_af_file(FILENAME_AF)
+            # OBTER edges e estados AQUI
         except Exception as e:
             context.update({'error1': e})
 
@@ -91,6 +92,7 @@ def upload_af_file(request):
             af_string = request.POST['file_content']
             try:
                 af = read_af_string(af_string)
+                # OBTER edges e estados AQUI
                 context.update({'file_content': af_string})
             except Exception as e:
                 context.update({'error2': e})
