@@ -46,17 +46,19 @@ def update_af_file(request):
     except:
         context.update({'error1': 'Não há nada para editar.',
                         'form': InputForm()})
-        return render(request, 'af.html', context)
     if 'error1' not in context.keys():
         filename = settings.MEDIA_ROOT + '/af_file'
         try:
             af = read_af_string(file_content)
             with open(filename, 'w') as fout:
                 print(file_content, file=fout)
+                context.update({'file_content': file_content,
+                                'afnodes': dumps(af.get_states_as_vis_nodes()),
+                                'afedges': dumps(af.get_transitions_as_vis_edges()),
+                                })
         except Exception as e:
-            context.update({'error1': e})
-        finally:
-            context.update({'file_content': file_content})
+            context.update({'error1': e,
+                            'form': InputForm(),})
     return render(request, 'af.html', context)
 
 

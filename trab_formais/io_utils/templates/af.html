@@ -24,7 +24,6 @@
 {% endblock download %}
 {% block visualize-infos %}
 		<div id="graph-area">
-		</div>
 	<script type="text/javascript">
 		var afnodes = JSON.parse("{{afnodes|escapejs}}");
 		var afedges = JSON.parse("{{afedges|escapejs}}");
@@ -69,4 +68,5 @@
             physics: {enabled:false}
     	});
 	</script>
+			</div>
 {% endblock visualize-infos %}
