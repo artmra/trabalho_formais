@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# PyCharm folder
+.idea/
+
+# result_files
+/trab_formais/test-files/test-files/resultados-testes/teste*-resultado.jff
+
+# temp_files
+/trab_formais/media/*
