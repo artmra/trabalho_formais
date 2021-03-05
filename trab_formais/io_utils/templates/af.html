@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}
+	AUTÔMATOS FINITOS
+{% endblock title %}
+{% block header-text %}
+	Leitura de Autômato Finito
+{% endblock header-text %}
+{% block form1 %}
+	<form enctype="multipart/form-data" method="POST" action="{% url 'options_af' %}">
+{% endblock form1 %}
+{% block choose-file %}
+	<input type="file" name="afFile" id="afFile">
+{% endblock choose-file %}
+{% block text-area %}
+	<textarea cols="40" rows="20" name="file_content" id="file_content">{{ file_content }}</textarea>
+{% endblock text-area %}
+{% block update-option %}
+	<input type="submit" value="Atualizar AF" name="option"/>
+{% endblock update-option %}
+{% block download %}
+		<form>
+		  <button formaction="{% url 'download_af' %}">Download</button>
+		</form>
+{% endblock download %}
+{% block visualize-infos %}
+		<div id="graph-area">
+	<script type="text/javascript">
+		var afnodes = JSON.parse("{{afnodes|escapejs}}");
+		var afedges = JSON.parse("{{afedges|escapejs}}");
+		console.log(data)
+		// create an array with nodes
+		var nodes = new vis.DataSet(afnodes);
+
+		// create an array with edges
+		var edges = new vis.DataSet(afedges);
+
+		// create a network
+		var container = document.getElementById('graph-area');
+
+		// provide the data in the vis format
+		var data = {
+			nodes: nodes,
+			edges: edges
+		};
+
+		var options = {
+			 edges: {
+				 arrows: {
+					 to: {
+						 enabled: true,
+						 imageHeight: undefined,
+						 imageWidth: undefined,
+						 scaleFactor: 1,
+						 src: undefined,
+						 type: "arrow"
+					 }
+				 }
+			 },
+			interaction: {
+			 	selectable: false,
+    			selectConnectedEdges: false,
+			}
+		};
+
+		// initialize your network!
+		var network = new vis.Network(container, data, options);
+		network.setOptions({
+            physics: {enabled:false}
+    	});
+	</script>
+			</div>
+{% endblock visualize-infos %}
