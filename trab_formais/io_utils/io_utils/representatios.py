@@ -345,51 +345,63 @@ class AF:
         if not self.is_afnd:
             pass
         if '&' in self.alphabet:
-            # calcula o epsilon fecho
-            epsilon_set = self.calculate_epsilon_set()
-            # remove o '&' do alfabeto
-            self.alphabet.remove('&')
-            new_transition_table = dict()
-            new_accept_states = list()
-            states_to_define = [epsilon_set[self.start_state]]
-            # calcula as transicoes para cada estado em states_to_define, enquanto houver
-            while states_to_define:
-                new_origin_state = sorted(states_to_define.pop(0))
-                new_origin_state_name = '{' + ';'.join(new_origin_state) + '}'
-                is_accept_state = False
-                transitions = dict()
-                for symbol in self.alphabet:
-                    new_state = list()
-                    for state in new_origin_state:
-                        # checa se new_origin_state é um estado de aceitação
-                        if state in self.accept_states and not is_accept_state:
-                            is_accept_state = True
-                        if symbol in self.transition_table[state].keys():
-                            # eventualmente pode acabar adicionando estados repetidos
-                            new_state.extend(self.transition_table[state][symbol])
-                    if new_state:
-                        # retira elementos repetidos e ordena a lista que contém os estados que compoe o novo estado
-                        new_state = sorted(list(set(new_state)))
-                        new_state_name = '{' + ';'.join(new_state) + '}'
-                        # checar se new_state já foi definido; se não, adicioná-lo a lista para definição
-                        if new_state_name not in new_transition_table.keys() and new_state not in states_to_define:
-                            states_to_define.append(new_state)
-                        # adicionar entrada a transitions
-                        transitions.update({symbol: new_state_name})
-                if is_accept_state and new_origin_state_name not in new_accept_states:
-                    new_accept_states.append(new_origin_state_name)
-                # adicionar a nova linha à nova tabela de transição
-                new_transition_table.update({new_origin_state_name: transitions})
-            # mudar o conjunto de estados de aceitação
-            self.accept_states = new_accept_states
-            # mudar o estado inicial
-            self.start_state = '{' + ';'.join(epsilon_set[self.start_state]) + '}'
-            # mudar a tabela de transicoes
-            self.transition_table = new_transition_table
-            # atualizar a lista de statos
-            self.states = list(self.transition_table.keys())
-            # atualizar o numero de estados
-            self.n_states = len(self.states)
+            self.determinize_with_epsilon()
+        else:
+            self.determinize_without_epsilon()
+
+    def determinize_with_epsilon(self):
+        # calcula o epsilon fecho
+        epsilon_set = self.calculate_epsilon_set()
+        # remove o '&' do alfabeto
+        self.alphabet.remove('&')
+        new_transition_table = dict()
+        new_accept_states = list()
+        states_to_define = [epsilon_set[self.start_state]]
+        # calcula as transicoes para cada estado em states_to_define, enquanto houver
+        while states_to_define:
+            new_origin_state = sorted(states_to_define.pop(0))
+            new_origin_state_name = '{' + ';'.join(new_origin_state) + '}'
+            is_accept_state = False
+            transitions = dict()
+            for symbol in self.alphabet:
+                new_state = list()
+                for state in new_origin_state:
+                    # checa se new_origin_state é um estado de aceitação
+                    if state in self.accept_states and not is_accept_state:
+                        is_accept_state = True
+                    if symbol in self.transition_table[state].keys():
+                        # eventualmente pode acabar adicionando estados repetidos
+                        new_state.extend(self.transition_table[state][symbol])
+                if new_state:
+                    # retira elementos repetidos e ordena a lista que contém os estados que compoe o novo estado
+                    new_state = sorted(list(set(new_state)))
+                    new_state_name = '{' + ';'.join(new_state) + '}'
+                    # checar se new_state já foi definido; se não, adicioná-lo a lista para definição
+                    if new_state_name not in new_transition_table.keys() and new_state not in states_to_define:
+                        states_to_define.append(new_state)
+                    # adicionar entrada a transitions
+                    transitions.update({symbol: new_state_name})
+            if is_accept_state and new_origin_state_name not in new_accept_states:
+                new_accept_states.append(new_origin_state_name)
+            # adicionar a nova linha à nova tabela de transição
+            new_transition_table.update({new_origin_state_name: transitions})
+        # mudar o conjunto de estados de aceitação
+        self.accept_states = new_accept_states
+        # mudar o estado inicial
+        self.start_state = '{' + ';'.join(epsilon_set[self.start_state]) + '}'
+        # mudar a tabela de transicoes
+        self.transition_table = new_transition_table
+        # atualizar a lista de statos
+        self.states = list(self.transition_table.keys())
+        # atualizar o numero de estados
+        self.n_states = len(self.states)
+
+    def determinize_without_epsilon(self):
+        new_transition_table = dict()
+        new_accept_states = list()
+        states_to_define = []
+        # primeiro percorre para obter novos estados e os adiciona em states_to_define
+        # define todos os estados em states_to_define, e adiciona novos a lista caso necessário
 
     def calculate_epsilon_set(self) -> dict:
         """
