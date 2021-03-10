@@ -242,7 +242,7 @@ class AF:
                f"Estado Inicial: {self.start_state}\n" \
                f"Estados de aceitação: {self.accept_states}\n" \
                f"Tabela de transições: {self.transition_table}\n" \
-               f"É AFND: { self.is_afnd}\n" \
+               f"É AFND: {self.is_afnd}\n" \
                f"Nomes dos estados: {self.states}"
 
     def write_to_file(self, filename):
@@ -290,7 +290,7 @@ class AF:
             state_label = state
 
             if state == self.start_state:
-                state_label ='->'+state
+                state_label = '->' + state
                 color_options = {'border': '#F25D00',
                                  'background': '#EEB679'}
 
@@ -317,15 +317,15 @@ class AF:
                     factor = 0
                     if index == 0:
                         factor = 0
-                    elif index%2 == 0:
-                        factor = index*0.2
+                    elif index % 2 == 0:
+                        factor = index * 0.2
                     else:
-                        factor = index*0.2*(-1)
+                        factor = index * 0.2 * (-1)
 
                     have_ocurred = edges_control.count([state, init_state])
 
                     if have_ocurred > 0:
-                        factor = factor + have_ocurred*0.2
+                        factor = factor + have_ocurred * 0.2
 
                     edges_control.append([init_state, state])
 
@@ -345,8 +345,37 @@ class AF:
         if not self.is_afnd:
             pass
         if '&' in self.alphabet:
+            # calcula o epsilon fecho
             epsilon_set = self.calculate_epsilon_set()
-            print('bk')
+            # remove o '&' do alfabeto
+            self.alphabet.remove('&')
+            new_transition_table = dict()
+            new_accept_states = list()
+            states_to_define = [epsilon_set[self.start_state]]
+            # calcula as transicoes para cada estado em states_to_define, enquanto houver
+            while states_to_define:
+                # TODO:ordenar a lista
+                new_origin_state = states_to_define.pop(0)
+                is_accept_state = False
+                transitions = dict()
+                for symbol in self.alphabet:
+                    new_state = list()
+                    for state in new_origin_state:
+                        # checa se new_origin_state é um estado de aceitação
+                        if state in self.accept_states:
+                            is_accept_state = True
+                        if symbol in self.transition_table[state].keys():
+                            new_state.append(self.transition_table[state][symbol])
+                    # TODO:ordenar a lista
+                    new_state = list(set(new_state))
+                    # TODO:checar se new_state já foi definido; se não, adicioná-lo a lista para definição
+                    # TODO:adicionar entrada a transitions
+                if is_accept_state:
+                    # TODO:mudar o conjunto de estados de aceitação
+                    pass
+                # TODO:adicionar a nova linha à nova tabela de transição
+
+            # TODO:mudar o estado inicial
 
     def calculate_epsilon_set(self) -> dict:
         """
