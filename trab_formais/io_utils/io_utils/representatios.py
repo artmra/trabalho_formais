@@ -147,6 +147,10 @@ class AF:
             Retorna os estados em uma lista de dicionários({id, label})
         get_transitions_as_viz_edges()
             Retorna as transições em uma lista de dicionários({from, to, label})
+        determinize()
+            Determiniza o AF caso o mesmo seja um AFND
+        calculate_epsilon_set()
+            Retorna um dicionário de lista que simula a função &-fecho para cada estado do AF
 
 
         """
@@ -333,3 +337,35 @@ class AF:
                         'color': '#6b705c'
                     })
         return edges
+
+    def determinize(self):
+        """
+        :return:
+        """
+        if not self.is_afnd:
+            pass
+        if '&' in self.alphabet:
+            epsilon_set = self.calculate_epsilon_set()
+            print('bk')
+
+    def calculate_epsilon_set(self) -> dict:
+        """
+        :return: dict
+            dicionário de listas que simula a funcao &-fecho dos estados do AF.
+        """
+        epsilon_set = dict()
+        for origin_state, transitions in self.transition_table.items():
+            # adiciona o proprio estado ao seu &-fecho
+            reachable_states = [origin_state]
+            if '&' in transitions.keys():
+                states_to_check = transitions['&']
+                # checa todos os estados alcancaveis a partir de origin_state enquanto ouver estado em states_to_check
+                while states_to_check:
+                    s = states_to_check.pop(0)
+                    reachable_states.append(s)
+                    if '&' in self.transition_table[s].keys():
+                        for state in self.transition_table[s]['&']:
+                            if state not in states_to_check and state not in reachable_states:
+                                states_to_check.append(state)
+            epsilon_set.update({origin_state: reachable_states})
+        return epsilon_set
