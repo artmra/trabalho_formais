@@ -140,15 +140,21 @@ class AF:
         Methods
         -------
         write_to_file(str=filename)
-            Escreve o objeto em um arquivo de nome 'filename'.
+            Escreve o objeto em um arquivo de nome 'filename'
         string_in_file_format()
-            Retorna o objeto codificado em uma string seguindo o formato de arquivo '.jff'.
+            Retorna o objeto codificado em uma string seguindo o formato de arquivo '.jff'
         get_states_as_viz_nodes()
             Retorna os estados em uma lista de dicionários({id, label})
         get_transitions_as_viz_edges()
             Retorna as transições em uma lista de dicionários({from, to, label})
         determinize()
             Determiniza o AF caso o mesmo seja um AFND
+        determinize_with_epsilon()
+            Determiniza o AF se o mesmo for um AFND com &-transições
+        determinize_without_epsilon()
+            Determiniza o AF se o mesmo for um AFND sem &-transições
+        define_new_states()
+            Define novos estados para o AF se baseando em uma lista passada como parâmetro.
         calculate_epsilon_set()
             Retorna um dicionário de lista que simula a função &-fecho para cada estado do AF
 
@@ -216,7 +222,7 @@ class AF:
                 self.transition_table.update({origin_state: dict()})
             # atualiza as transições de 'origin_state'
             state_transitions_by = self.transition_table[origin_state]
-            reachable_states = [str(reachable_state) for reachable_state in reachable_states.split("-")]
+            reachable_states = sorted([str(reachable_state) for reachable_state in reachable_states.split("-")])
             for state in reachable_states:
                 if state in self.alphabet:
                     line = str(5 + transitions.index(transition))
@@ -350,17 +356,60 @@ class AF:
             self.determinize_without_epsilon()
 
     def determinize_with_epsilon(self):
+        """
+        :return:
+        """
         # calcula o epsilon fecho
         epsilon_set = self.calculate_epsilon_set()
-        # remove o '&' do alfabeto
-        self.alphabet.remove('&')
-        new_transition_table = dict()
-        new_accept_states = list()
         states_to_define = [epsilon_set[self.start_state]]
         # calcula as transicoes para cada estado em states_to_define, enquanto houver
+        new_accept_states, new_transition_table = self.define_new_states(states_to_define, dict(), epsilon_set)
+        # remove o '&' do alfabeto
+        self.alphabet.remove('&')
+        # mudar o conjunto de estados de aceitação
+        self.accept_states = new_accept_states
+        # mudar o estado inicial
+        self.start_state = get_name(epsilon_set[self.start_state])
+        # mudar a tabela de transicoes
+        self.transition_table = new_transition_table
+        # atualizar a lista de statos
+        self.states = list(self.transition_table.keys())
+        # atualizar o numero de estados
+        self.n_states = len(self.states)
+
+    def determinize_without_epsilon(self):
+        """
+        :return:
+        """
+        states_to_define = []
+        # primeiro percorre para obter novos estados e os adiciona em states_to_define
+        for transitions in self.transition_table.values():
+            new_states = [state for state in transitions.values() if len(state) > 1 and state not in states_to_define]
+            if new_states:
+                states_to_define.extend(new_states)
+        # define todos os estados em states_to_define, e adiciona novos a lista caso necessário
+        new_accept_states, _ = self.define_new_states(states_to_define, self.transition_table, dict())
+        # atualiza refrencias a nomes antigos no dicionario
+        for origin_state, transitions in self.transition_table.items():
+            for symbol, destiny_states in transitions.items():
+                if len(destiny_states) > 1:
+                    self.transition_table[origin_state][symbol] = [get_name(destiny_states)]
+        # atualizar a lista de estados de aceitação
+        self.accept_states.extend(new_accept_states)
+        # atualizar a lista de estados
+        self.states = list(self.transition_table.keys())
+        # atualizar o numero de estados
+        self.n_states = len(self.states)
+
+    def define_new_states(self, states_to_define, transition_table, epsilon_set):
+        """
+        :return: list
+            lista contendo, na seguinte ordem: [0]conjunto de novos estados de aceitação; [1]nova tabela de transições.
+        """
+        new_accept_states = list()
         while states_to_define:
             new_origin_state = sorted(states_to_define.pop(0))
-            new_origin_state_name = '{' + ';'.join(new_origin_state) + '}'
+            new_origin_state_name = get_name(new_origin_state)
             is_accept_state = False
             transitions = dict()
             for symbol in self.alphabet:
@@ -370,38 +419,28 @@ class AF:
                     if state in self.accept_states and not is_accept_state:
                         is_accept_state = True
                     if symbol in self.transition_table[state].keys():
+                        # adiciona o epsilon fecho de cada estado se for AFND com &-transições
+                        if '&' in self.alphabet:
+                            for s in self.transition_table[state][symbol]:
+                                # eventualmente pode acabar adicionando estados repetidos
+                                new_state.extend(epsilon_set[s])
+                            continue
                         # eventualmente pode acabar adicionando estados repetidos
                         new_state.extend(self.transition_table[state][symbol])
                 if new_state:
                     # retira elementos repetidos e ordena a lista que contém os estados que compoe o novo estado
                     new_state = sorted(list(set(new_state)))
-                    new_state_name = '{' + ';'.join(new_state) + '}'
+                    new_state_name = get_name(new_state)
                     # checar se new_state já foi definido; se não, adicioná-lo a lista para definição
-                    if new_state_name not in new_transition_table.keys() and new_state not in states_to_define:
+                    if new_state_name not in transition_table.keys() and new_state not in states_to_define:
                         states_to_define.append(new_state)
                     # adicionar entrada a transitions
-                    transitions.update({symbol: new_state_name})
+                    transitions.update({symbol: [new_state_name]})
             if is_accept_state and new_origin_state_name not in new_accept_states:
                 new_accept_states.append(new_origin_state_name)
             # adicionar a nova linha à nova tabela de transição
-            new_transition_table.update({new_origin_state_name: transitions})
-        # mudar o conjunto de estados de aceitação
-        self.accept_states = new_accept_states
-        # mudar o estado inicial
-        self.start_state = '{' + ';'.join(epsilon_set[self.start_state]) + '}'
-        # mudar a tabela de transicoes
-        self.transition_table = new_transition_table
-        # atualizar a lista de statos
-        self.states = list(self.transition_table.keys())
-        # atualizar o numero de estados
-        self.n_states = len(self.states)
-
-    def determinize_without_epsilon(self):
-        new_transition_table = dict()
-        new_accept_states = list()
-        states_to_define = []
-        # primeiro percorre para obter novos estados e os adiciona em states_to_define
-        # define todos os estados em states_to_define, e adiciona novos a lista caso necessário
+            transition_table.update({new_origin_state_name: transitions})
+        return [new_accept_states, transition_table]
 
     def calculate_epsilon_set(self) -> dict:
         """
@@ -424,3 +463,13 @@ class AF:
                                 states_to_check.append(state)
             epsilon_set.update({origin_state: reachable_states})
         return epsilon_set
+
+
+def get_name(states_list):
+    """
+    :return: string
+        string contendo um novo nome para um conjunto de estados.
+    """
+    if len(states_list) > 1:
+        return '{' + ';'.join(states_list) + '}'
+    return states_list[0]
