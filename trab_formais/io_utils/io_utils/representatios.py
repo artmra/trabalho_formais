@@ -115,6 +115,38 @@ class GR:
                f"{','.join(self.terminals)}\n" \
                f"{productions}"
 
+    def convert_to_afnd(self):
+        #metadata = [numero de estados, estado inicial, [estados de aceitação], [alfabeto]]
+        #transitions = [transicoes]
+
+        estado_inicial = self.start_symbol
+        alfabeto = self.terminals
+
+        if "&" in alfabeto:
+            alfabeto.remove("&")
+
+        estados = self.non_terminals
+        estados_aceitacao = ["F1"] #criado novo estado para o AF
+
+        # caso a gramatica aceite a palavra vazia, o estado inicial é de aceitação também
+        if ("&" in self.productions.get("S")) :
+            estados_aceitacao.append("S")
+
+        trans = []
+        for k in self.productions.keys():
+            for p in self.productions.get(k):
+                if len(p) == 2: ## transiçoes do tipo S -> aA
+                    letter = p[0]
+                    state = p[1]
+                    trans.append(k+","+letter+","+state) ##transiçao "0,a,1"
+
+                else:  ## transiçoes do tipo S -> a
+                    if p != "&":
+                        trans.append(k + "," + p + ",F1")
+
+        meta = [len(estados), estado_inicial, estados_aceitacao, alfabeto]
+        return AF(meta, trans)
+
 
 class AF:
     """

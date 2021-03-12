@@ -18,5 +18,7 @@
 	<input type="submit" value="Atualizar ER" name="option"/>
 {% endblock update-option %}
 {% block download %}
-	<a href="{% url 'download_er' %}" class="btn btn-primary" download>Download</a>
+    <form>
+		  <button formaction="{% url 'download_er' %}">Download</button>
+    </form>
 {% endblock download %}
