@@ -1,3 +1,5 @@
+#pegar letra do alfabeto -> string.ascii_lowercase , onde [0] é 'a' minusculo
+
 class GR:
     """
     Classe usada para representar uma Gramática Regular
@@ -115,7 +117,7 @@ class GR:
                f"{','.join(self.terminals)}\n" \
                f"{productions}"
 
-    def convert_to_afnd(self):
+    def convert_to_af(self):
         #metadata = [numero de estados, estado inicial, [estados de aceitação], [alfabeto]]
         #transitions = [transicoes]
 
@@ -401,7 +403,7 @@ class AF:
         # mudar o conjunto de estados de aceitação
         self.accept_states = new_accept_states
         # mudar o estado inicial
-        self.start_state = get_name(epsilon_set[self.start_state])
+        self.start_state = self.get_name(epsilon_set[self.start_state])
         # mudar a tabela de transicoes
         self.transition_table = new_transition_table
         # atualizar a lista de statos
@@ -425,7 +427,7 @@ class AF:
         for origin_state, transitions in self.transition_table.items():
             for symbol, destiny_states in transitions.items():
                 if len(destiny_states) > 1:
-                    self.transition_table[origin_state][symbol] = [get_name(destiny_states)]
+                    self.transition_table[origin_state][symbol] = [self.get_name(destiny_states)]
         # atualizar a lista de estados de aceitação
         self.accept_states.extend(new_accept_states)
         # atualizar a lista de estados
@@ -441,7 +443,7 @@ class AF:
         new_accept_states = list()
         while states_to_define:
             new_origin_state = sorted(states_to_define.pop(0))
-            new_origin_state_name = get_name(new_origin_state)
+            new_origin_state_name = self.get_name(new_origin_state)
             is_accept_state = False
             transitions = dict()
             for symbol in self.alphabet:
@@ -462,7 +464,7 @@ class AF:
                 if new_state:
                     # retira elementos repetidos e ordena a lista que contém os estados que compoe o novo estado
                     new_state = sorted(list(set(new_state)))
-                    new_state_name = get_name(new_state)
+                    new_state_name = self.get_name(new_state)
                     # checar se new_state já foi definido; se não, adicioná-lo a lista para definição
                     if new_state_name not in transition_table.keys() and new_state not in states_to_define:
                         states_to_define.append(new_state)
@@ -497,11 +499,33 @@ class AF:
         return epsilon_set
 
 
-def get_name(states_list):
-    """
-    :return: string
-        string contendo um novo nome para um conjunto de estados.
-    """
-    if len(states_list) > 1:
-        return '{' + ';'.join(states_list) + '}'
-    return states_list[0]
+    def get_name(states_list):
+        """
+        :return: string
+            string contendo um novo nome para um conjunto de estados.
+        """
+        if len(states_list) > 1:
+            return '{' + ';'.join(states_list) + '}'
+        return states_list[0]
+
+    def convert_to_gr(self):
+        nao_terminais = self.states
+        simb_inicial = self.start_state
+        terminais = self.alphabet
+        metadata = [simb_inicial, nao_terminais, terminais]
+
+        prod = []
+        for origin, transitions in self.transition_table.items():
+            transition = origin + " -> "
+            for symbol, states in transitions:
+                for num, state in enumerate(states, start=1):
+                    if state in self.accept_states:
+                        transition += symbol
+
+                    transition += symbol+""+state
+                    if num < len(states):
+                        transitions += " | "
+
+            prod.append(transition)
+
+        return GR(metadata, prod)
