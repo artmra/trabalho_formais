@@ -1,4 +1,3 @@
-#pegar letra do alfabeto -> string.ascii_lowercase , onde [0] é 'a' minusculo
 
 class GR:
     """
@@ -122,17 +121,22 @@ class GR:
         #transitions = [transicoes]
 
         estado_inicial = self.start_symbol
-        alfabeto = self.terminals
 
-        if "&" in alfabeto:
-            alfabeto.remove("&")
+        alfabeto_list = self.terminals
+
+        if "&" in alfabeto_list:
+            alfabeto_list.remove("&")
+
+        alfabeto = ','.join(map(str, alfabeto_list))
 
         estados = self.non_terminals
-        estados_aceitacao = ["F1"] #criado novo estado para o AF
+        estados_aceitacao_list = ["F1"] #criado novo estado para o AF
 
         # caso a gramatica aceite a palavra vazia, o estado inicial é de aceitação também
         if ("&" in self.productions.get("S")) :
-            estados_aceitacao.append("S")
+            estados_aceitacao_list.append("S")
+
+        estados_aceitacao = ','.join(map(str, estados_aceitacao_list))
 
         trans = []
         for k in self.productions.keys():
@@ -509,23 +513,33 @@ class AF:
         return states_list[0]
 
     def convert_to_gr(self):
-        nao_terminais = self.states
+        nao_terminais = ','.join(map(str, self.states))
         simb_inicial = self.start_state
-        terminais = self.alphabet
+        terminais = ','.join(map(str, self.alphabet))
         metadata = [simb_inicial, nao_terminais, terminais]
 
         prod = []
         for origin, transitions in self.transition_table.items():
             transition = origin + " -> "
-            for symbol, states in transitions:
-                for num, state in enumerate(states, start=1):
-                    if state in self.accept_states:
-                        transition += symbol
+            idx = 1
+            for symbol, states in transitions.items():
+                for idx2, state in enumerate(states, start=1):
 
-                    transition += symbol+""+state
-                    if num < len(states):
-                        transitions += " | "
+                    if state in self.accept_states:
+                        transition += ""+symbol
+                    else:
+                        transition += ""+symbol+state
+
+                    if idx2 < len(states):
+                        print(idx2)
+                        print(states)
+                        transition += " | "
+
+                if idx < len(transitions):
+                    transition+= " | "
+                idx += 1
 
             prod.append(transition)
+
 
         return GR(metadata, prod)

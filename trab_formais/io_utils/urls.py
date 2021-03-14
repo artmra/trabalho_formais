@@ -1,6 +1,6 @@
 from django.urls import path
-# from io_utils.views import UserViewSet, GroupViewSet
-from io_utils import views
+# from io_functions.views import UserViewSet, GroupViewSet
+from io_functions import views
 from django.conf import settings
 from django.conf.urls.static import static
 

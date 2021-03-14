@@ -1,1 +1,1 @@
-default_app_config = 'io_utils.apps.IoUtilsConfig'
+default_app_config = 'io_functions.apps.IoUtilsConfig'

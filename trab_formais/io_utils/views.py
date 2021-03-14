@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.conf import settings
 
 from .forms import InputForm, GrammarForm
-from .io_utils.functions import read_gr_file, read_af_string, read_gr_string
+from .io_functions.functions import read_gr_file, read_af_string, read_gr_string
 from json import dumps
 
 FILENAME_AF = settings.MEDIA_ROOT + '/af_file'
