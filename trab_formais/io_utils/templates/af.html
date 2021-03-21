@@ -24,49 +24,49 @@
 {% endblock download %}
 {% block visualize-infos %}
 		<div id="graph-area">
-	<script type="text/javascript">
-		var afnodes = JSON.parse("{{afnodes|escapejs}}");
-		var afedges = JSON.parse("{{afedges|escapejs}}");
-		console.log(data)
-		// create an array with nodes
-		var nodes = new vis.DataSet(afnodes);
+			<script type="text/javascript">
+				var afnodes = JSON.parse("{{afnodes|escapejs}}");
+				var afedges = JSON.parse("{{afedges|escapejs}}");
+				console.log(data)
+				// create an array with nodes
+				var nodes = new vis.DataSet(afnodes);
 
-		// create an array with edges
-		var edges = new vis.DataSet(afedges);
+				// create an array with edges
+				var edges = new vis.DataSet(afedges);
 
-		// create a network
-		var container = document.getElementById('graph-area');
+				// create a network
+				var container = document.getElementById('graph-area');
 
-		// provide the data in the vis format
-		var data = {
-			nodes: nodes,
-			edges: edges
-		};
+				// provide the data in the vis format
+				var data = {
+					nodes: nodes,
+					edges: edges
+				};
 
-		var options = {
-			 edges: {
-				 arrows: {
-					 to: {
-						 enabled: true,
-						 imageHeight: undefined,
-						 imageWidth: undefined,
-						 scaleFactor: 1,
-						 src: undefined,
-						 type: "arrow"
-					 }
-				 }
-			 },
-			interaction: {
-			 	selectable: false,
-    			selectConnectedEdges: false,
-			}
-		};
+				var options = {
+					 edges: {
+						 arrows: {
+							 to: {
+								 enabled: true,
+								 imageHeight: undefined,
+								 imageWidth: undefined,
+								 scaleFactor: 1,
+								 src: undefined,
+								 type: "arrow"
+							 }
+						 }
+					 },
+					interaction: {
+						selectable: false,
+						selectConnectedEdges: false,
+					}
+				};
 
-		// initialize your network!
-		var network = new vis.Network(container, data, options);
-		network.setOptions({
-            physics: {enabled:false}
-    	});
-	</script>
-			</div>
+				// initialize your network!
+				var network = new vis.Network(container, data, options);
+				network.setOptions({
+					physics: {enabled:false}
+				});
+			</script>
+		</div>
 {% endblock visualize-infos %}

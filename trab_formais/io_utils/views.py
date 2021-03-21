@@ -15,6 +15,7 @@ FILENAME_ER = settings.MEDIA_ROOT + os.path.sep + 'er_file'
 FILENAME_GR = settings.MEDIA_ROOT + os.path.sep + 'gr_file'
 
 
+
 def index(request):
     template = loader.get_template('index.html')
     context = {}

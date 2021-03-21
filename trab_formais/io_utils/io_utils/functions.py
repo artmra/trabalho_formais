@@ -40,8 +40,23 @@ def read_gr_string(string):
 
 def read_gr_lines(lines):
     try:
-        meta_data = [lines[x].replace(" ", "").strip() for x in range(3)]
-        productions = [lines[x].replace(" ", "").strip() for x in range(3, len(lines))]
+        meta_data = []
+        productions = []
+        i = 0
+        while len(meta_data) < 3:
+            line = lines[i].replace(" ","").strip()
+            i += 1
+            if line!="" :
+                meta_data.append(line)
+
+        while i < len(lines):
+            line = lines[i].replace(" ", "").strip()
+            print(line)
+            i += 1
+            if line != "":
+                productions.append(line)
+        # meta_data = [lines[x].replace(" ", "").strip() for x in range(3)]
+        # productions = [lines[x].replace(" ", "").strip() for x in range(3, len(lines))]
     except:
         raise Exception(ERROR + "GR.")
     return meta_data, productions
