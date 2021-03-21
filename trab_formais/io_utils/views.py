@@ -89,14 +89,17 @@ def upload_af_file(request):
             converted_gr = af.convert_to_gr()
             converted_gr.write_to_file(FILENAME_GR)
 
-            context.update({'afnodes': dumps(af.get_states_as_vis_nodes()),
+            context.update({'is_afnd': af.is_afnd,
+                            'afnodes': dumps(af.get_states_as_vis_nodes()),
                             'afedges': dumps(af.get_transitions_as_vis_edges()),
                             })
         except Exception as e:
             context.update({'error1': e})
 
     if 'error1' not in context.keys():
-        context.update({'file_content': file_content})
+        context.update({'is_afnd': af.is_afnd,
+                        'file_content': file_content,
+                        })
     else:
         if 'file_content' in request.POST.keys():
             af_string = request.POST['file_content']
@@ -107,7 +110,8 @@ def upload_af_file(request):
                 converted_gr.write_to_file(FILENAME_GR)
 
                 # obtém os dados necessários para gerar os grafos aqui
-                context.update({'file_content': af_string,
+                context.update({'is_afnd': af.is_afnd,
+                                'file_content': af_string,
                                 'afnodes': dumps(af.get_states_as_vis_nodes()),
                                 'afedges': dumps(af.get_transitions_as_vis_edges()),
                                 })
@@ -115,7 +119,9 @@ def upload_af_file(request):
                 context.update({'error2': e})
                 context.update({'file_content': af_string})
         else:
-            context.update({'form': InputForm()})
+            context.update({'is_afnd': af.is_afnd,
+                            'form': InputForm()
+                            })
     return render(request, 'af.html', context)
 
 
@@ -132,6 +138,40 @@ def download_converted_gr(request):
     response['Content-Disposition'] = 'attachment; filename=af_to_gr.jff'
     return response
 
+def determinize(request):
+    context = dict()
+    try:
+        uploaded_file = request.FILES['afFile']
+    except:
+        context.update({'error1': 'Você não selecionou um arquivo.'})
+    if 'error1' not in context.keys():
+        # Check size of file, only open if its not too big
+        if not uploaded_file.multiple_chunks():
+            file_content = str(uploaded_file.read(), 'utf-8')
+        else:
+            print('File too big')
+
+        try:
+            af = read_af_string(file_content)
+            af.determinize()
+            af.write_to_file(FILENAME_AF)
+        except Exception as e:
+            context.update({'error1': e})
+    else:
+        if 'file_content' in request.POST.keys():
+            af_string = request.POST['file_content']
+            try:
+                af = read_af_string(af_string)
+                af.determinize()
+                af.write_to_file(FILENAME_AF)
+            except Exception as e:
+                context.update({'error2': e})
+                context.update({'file_content': af_string})
+
+    response = HttpResponse(open(FILENAME_AF, 'rb').read())
+    response['Content-Type'] = 'text/plain'
+    response['Content-Disposition'] = 'attachment; filename=af_determinized.jff'
+    return response
 
 #######################################################################################################################
 #                                                    GR endpoints                                                     #

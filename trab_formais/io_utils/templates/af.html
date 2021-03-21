@@ -23,6 +23,18 @@
 {% block convert %}
 		<button formaction="{% url 'convert_to_gr' %}">Convert to GR</button>
 {% endblock convert %}
+{% if is_afnd %}
+	{% block determinize %}
+		<button formaction="{% url 'determinize' %}">Determinize</button>
+	{% endblock determinize %}
+{% endif %}
+<!--<div>-->
+<!--{% if is_afnd %}-->
+<!--		é afnd-->
+<!--{% else %}-->
+<!--		nao é afnd-->
+<!--{% endif %}-->
+<!--</div>-->
 {% block visualize-infos %}
 		<div id="graph-area">
 			<script type="text/javascript">

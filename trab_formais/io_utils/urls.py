@@ -13,6 +13,7 @@ urlpatterns = [
     path('af/download_af_file', views.download_af_file, name='download_af'),
     path('af/update_af_file/', views.update_af_file, name='update_af'),
     path('af/convert_to_gr/', views.download_converted_gr, name='convert_to_gr'),
+    path('af/determinize/', views.determinize, name='determinize'),
 
     path('er', views.regular_expression),
     path('er/update_or_upload', views.update_or_upload_er, name='options_er'),

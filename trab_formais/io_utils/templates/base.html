@@ -49,14 +49,23 @@
 					{% block convert %}
 						<button formaction="{% url 'method' %}">Convert to</button>
 					{% endblock convert %}
+					{% if is_afnd %}
+						{% block determinize %}
+							<button formaction="{% url 'method' %}">Determinize</button>
+						{% endblock determinize %}
+					{% endif %}
+
+
 				</form>
+
+				<div class="af">
+					{% block visualize-infos %}
+					{% endblock visualize-infos %}
+				</div>
 			</div>
 		</div>
 
-		<div class="af">
-			{% block visualize-infos %}
-			{% endblock visualize-infos %}
-		</div>
+
 	</div>
 
 	{% endblock body%}
