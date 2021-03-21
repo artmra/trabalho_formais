@@ -119,6 +119,45 @@ class GR:
                f"{productions}"
 
 
+    def convert_to_af(self):
+        #metadata = [numero de estados, estado inicial, [estados de aceitação], [alfabeto]]
+        #transitions = [transicoes]
+
+        estado_inicial = self.start_symbol
+
+        alfabeto_list = self.terminals
+
+        if "&" in alfabeto_list:
+            alfabeto_list.remove("&")
+
+        alfabeto = ','.join(map(str, alfabeto_list))
+
+        estados = self.non_terminals
+        estados_aceitacao_list = ["F1"] #criado novo estado para o AF
+
+        # caso a gramatica aceite a palavra vazia, o estado inicial é de aceitação também
+        if ("&" in self.productions.get("S")) :
+            estados_aceitacao_list.append("S")
+
+        estados_aceitacao = ','.join(map(str, estados_aceitacao_list))
+
+        trans = []
+        for k in self.productions.keys():
+            for p in self.productions.get(k):
+                if len(p) == 2: ## transiçoes do tipo S -> aA
+                    letter = p[0]
+                    state = p[1]
+                    trans.append(k+","+letter+","+state) ##transiçao "0,a,1"
+
+                else:  ## transiçoes do tipo S -> a
+                    if p != "&":
+                        trans.append(k + "," + p + ",F1")
+
+        meta = [len(estados), estado_inicial, estados_aceitacao, alfabeto]
+        return AF(meta, trans)
+
+
+
 class AF:
     """
         Classe usada para representar um Autômato Finito
@@ -467,6 +506,36 @@ class AF:
             epsilon_set.update({origin_state: reachable_states})
         return epsilon_set
 
+    def convert_to_gr(self):
+        nao_terminais = ','.join(map(str, self.states))
+        simb_inicial = self.start_state
+        terminais = ','.join(map(str, self.alphabet))
+        metadata = [simb_inicial, nao_terminais, terminais]
+
+        prod = []
+        for origin, transitions in self.transition_table.items():
+            transition = origin + " -> "
+            idx = 1
+            for symbol, states in transitions.items():
+                for idx2, state in enumerate(states, start=1):
+
+                    if state in self.accept_states:
+                        transition += "" + symbol
+                    else:
+                        transition += "" + symbol + state
+
+                    if idx2 < len(states):
+                        print(idx2)
+                        print(states)
+                        transition += " | "
+
+                if idx < len(transitions):
+                    transition += " | "
+                idx += 1
+
+            prod.append(transition)
+
+        return GR(metadata, prod)
 
 class ER:
     """

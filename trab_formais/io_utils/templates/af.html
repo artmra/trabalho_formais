@@ -18,10 +18,11 @@
 	<input type="submit" value="Atualizar AF" name="option"/>
 {% endblock update-option %}
 {% block download %}
-		<form>
 		  <button formaction="{% url 'download_af' %}">Download</button>
-		</form>
 {% endblock download %}
+{% block convert %}
+		<button formaction="{% url 'convert_to_gr' %}">Convert to GR</button>
+{% endblock convert %}
 {% block visualize-infos %}
 		<div id="graph-area">
 			<script type="text/javascript">

@@ -44,7 +44,9 @@
 	<input type="submit" value="Atualizar GR" name="option"/>
 {% endblock update-option %}
 {% block download %}
-		<form>
-		  <button formaction="{% url 'download_gr' %}">Download</button>
-		</form>
+	<button formaction="{% url 'download_gr' %}">Download</button>
 {% endblock download %}
+
+{% block convert %}
+	<button formaction="{% url 'convert_to_af' %}">Convert to AF</button>
+{% endblock convert %}

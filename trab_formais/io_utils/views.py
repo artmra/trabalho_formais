@@ -85,6 +85,10 @@ def upload_af_file(request):
 
         try:
             af = read_af_string(file_content)
+
+            converted_gr = af.convert_to_gr()
+            converted_gr.write_to_file(FILENAME_GR)
+
             context.update({'afnodes': dumps(af.get_states_as_vis_nodes()),
                             'afedges': dumps(af.get_transitions_as_vis_edges()),
                             })
@@ -98,6 +102,10 @@ def upload_af_file(request):
             af_string = request.POST['file_content']
             try:
                 af = read_af_string(af_string)
+
+                converted_gr = af.convert_to_gr()
+                converted_gr.write_to_file(FILENAME_GR)
+
                 # obtém os dados necessários para gerar os grafos aqui
                 context.update({'file_content': af_string,
                                 'afnodes': dumps(af.get_states_as_vis_nodes()),
@@ -116,6 +124,12 @@ def download_af_file(request):
     response = HttpResponse(open(FILENAME_AF, 'rb').read())
     response['Content-Type'] = 'text/plain'
     response['Content-Disposition'] = 'attachment; filename=AF.jff'
+    return response
+
+def download_converted_gr(request):
+    response = HttpResponse(open(FILENAME_GR, 'rb').read())
+    response['Content-Type'] = 'text/plain'
+    response['Content-Disposition'] = 'attachment; filename=af_to_gr.jff'
     return response
 
 
@@ -185,6 +199,10 @@ def upload_gr_file(request):
 
         try:
             gr = read_gr_file(FILENAME_GR)
+
+            converted_af = gr.convert_to_af()
+            converted_af.write_to_file(FILENAME_AF)
+
         except Exception as e:
             context.update({'error1': e})
 
@@ -196,6 +214,10 @@ def upload_gr_file(request):
             gr_string = request.POST['content']
             try:
                 gr = read_gr_string(gr_string)
+
+                converted_af = gr.convert_to_af()
+                converted_af.write_to_file(FILENAME_AF)
+
                 customize_gr_form(form, gr, gr_string)
                 context.update({'form': form})
             except Exception as e:
@@ -224,6 +246,12 @@ def download_gr_file(request):
     response = HttpResponse(open(FILENAME_GR, 'rb').read())
     response['Content-Type'] = 'text/plain'
     response['Content-Disposition'] = 'attachment; filename=GR.jff'
+    return response
+
+def download_converted_af(request):
+    response = HttpResponse(open(FILENAME_AF, 'rb').read())
+    response['Content-Type'] = 'text/plain'
+    response['Content-Disposition'] = 'attachment; filename=gr_to_af.jff'
     return response
 
 
