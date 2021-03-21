@@ -8,9 +8,11 @@ from .forms import InputForm, GrammarForm
 from .io_utils.functions import read_gr_file, read_af_string, read_gr_string
 from json import dumps
 
-FILENAME_AF = settings.MEDIA_ROOT + '/af_file'
-FILENAME_ER = settings.MEDIA_ROOT + '/er_file'
-FILENAME_GR = settings.MEDIA_ROOT + '/gr_file'
+import os
+
+FILENAME_AF = settings.MEDIA_ROOT + os.path.sep + 'af_file'
+FILENAME_ER = settings.MEDIA_ROOT + os.path.sep + 'er_file'
+FILENAME_GR = settings.MEDIA_ROOT + os.path.sep + 'gr_file'
 
 
 def index(request):
