@@ -1,4 +1,5 @@
-from .representatios import AF, GR
+from .AF import AF
+from .GR import GR
 
 ERROR = "Número insuficiente de linhas para definir um "
 
