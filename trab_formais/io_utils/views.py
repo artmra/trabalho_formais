@@ -8,7 +8,9 @@ from .forms import InputForm, GrammarForm
 from .io_utils.functions import read_gr_file, read_af_string, read_gr_string
 from json import dumps
 
-FILENAME_AF = settings.MEDIA_ROOT + '/af_file'
+from .io_utils.representatios import AF
+
+FILENAME_AF = settings.MEDIA_ROOT + '/af_file/wtf.txt'
 FILENAME_ER = settings.MEDIA_ROOT + '/er_file'
 FILENAME_GR = settings.MEDIA_ROOT + '/gr_file'
 
@@ -36,6 +38,10 @@ def update_or_upload_af(request):
         return upload_af_file(request)
     elif request.POST['option'] == 'Atualizar AF':
         return update_af_file(request)
+    elif request.POST['option'] == 'União':
+        return af_union(request)
+    elif request.POST['option'] == 'Interseção':
+        return af_union(request, inter=True)
 
 
 def update_af_file(request):
@@ -114,6 +120,78 @@ def download_af_file(request):
     response['Content-Type'] = 'text/plain'
     response['Content-Disposition'] = 'attachment; filename=AF.jff'
     return response
+
+
+def af_union(request, inter=False):
+    context = dict()
+    try:
+        uploaded_file = request.FILES['afFile']
+    except:
+        context.update({'error1': 'Você não selecionou um arquivo.'})
+    if 'error1' not in context.keys():
+        # writing file for temp use
+        output_file = open(FILENAME_AF, 'w')
+        # Check size of file, only open if its not too big
+        if not uploaded_file.multiple_chunks():
+            file_content = str(uploaded_file.read(), 'utf-8')
+            output_file.write(file_content)
+        else:
+            print('File too big')
+        output_file.close()
+
+        try:
+            af2 = read_af_string(file_content)
+        except Exception as e:
+            context.update({'error1': e})
+
+    af1 = read_af_string(request.POST.get('file_content'))
+    n_states = af1.n_states * af2.n_states
+    start_state = af1.start_state + '-' + af2.start_state
+    states = []
+    for s1 in af1.states:
+        for s2 in af2.states:
+            states.append(s1 + '-' + s2)
+    accept_states = []
+    if inter:
+        for s1 in af1.accept_states:
+            for s2 in af2.accept_states:
+                accept_states.append(s1 + '-' + s2)
+    else:
+        for acpt_states in af1.accept_states:
+            for s in states:
+                if s.split('-')[0] == acpt_states:
+                    accept_states.append(s)
+        for acpt_states in af2.accept_states:
+            for s in states:
+                if s.split('-')[1] == acpt_states:
+                    accept_states.append(s)
+        accept_states = list(dict.fromkeys(accept_states))
+    alphabet = list(dict.fromkeys(af1.alphabet + af2.alphabet))
+    transition_table = {}
+    for s in states:
+        for symbol in alphabet:
+            try:
+                new_transition_p1 = ''.join(af1.transition_table[s.split('-')[0]][symbol]) + '-'
+                new_transition_p2 = ''.join(af2.transition_table[s.split('-')[1]][symbol])
+                if s in transition_table:
+                    transition_table[s].update({symbol: [new_transition_p1 + new_transition_p2]})
+                else:
+                    transition_table.update({s: {symbol: [new_transition_p1 + new_transition_p2]}})
+            except KeyError:
+                continue
+    is_AFND = False
+    union_af = AF(None, None, n_states, start_state, accept_states, alphabet, transition_table, is_AFND, states)
+
+    try:
+        # obtém os dados necessários para gerar os grafos aqui
+        context.update({'file_content': union_af.string_in_file_format(),
+                        'afnodes': dumps(union_af.get_states_as_vis_nodes()),
+                        'afedges': dumps(union_af.get_transitions_as_vis_edges()),
+                        })
+    except Exception as e:
+        context.update({'error2': e})
+        context.update({'file_content': union_af.string_in_file_format()})
+    return render(request, 'af.html', context)
 
 
 #######################################################################################################################
