@@ -541,5 +541,126 @@ class AF:
 
             prod.append(transition)
 
-
         return GR(metadata, prod)
+
+    def hopcroft(self):
+        final_states = set(self.accept_states)
+        non_final_states = set(self.states) - final_states
+
+        p = [final_states, non_final_states]
+        w = [final_states, non_final_states]
+
+        x = set()
+        for state in self.states:
+            for symbol, states in self.transition_table[state].items():
+                for _state in states:
+                    x.add(_state)
+
+        # w is not empty
+        while w:
+            a = w.pop()
+            x = set()
+
+            for c in self.alphabet:
+                for state in self.states:
+                    for symbol, states in self.transition_table[state].items():
+                        for _state in states:
+                            if symbol == c and _state in a:
+                                # let X be the set of states for which a transition on c leads to a state in A
+                                x.add(_state)
+                            for y in p:
+                                y_set = y
+                                # for each set Y in P for which X ∩ Y is nonempty and Y \ X is nonempty do
+                                if not(bool(x & y_set)) and not(bool(x - y_set)):
+                                    p.remove(y_set)
+                                    p.append(x & y_set)
+                                    p.append(x - y_set)
+                                    if y_set in w:
+                                        w.remove(y_set)
+                                        w.append(x & y_set)
+                                        w.append(x - y_set)
+                                    else:
+                                        if len(x & y_set) <= len(x - y_set):
+                                            w.append(x & y_set)
+                                        else:
+                                            w.append(x - y_set)
+        print(p)
+        print(w)
+
+    def minimize_af(self):
+        # Unreachable states
+        reachable_states = list()
+        states_to_visit = [self.start_state]
+
+        while states_to_visit:
+            origin_state = states_to_visit.pop()
+            reachable_states.append(origin_state)
+
+            for _, states in self.transition_table[origin_state].items():
+                for state in states:
+                    if state not in states_to_visit and state not in reachable_states:
+                        states_to_visit.append(state)
+        # Set new states
+        self.states = reachable_states
+
+        # Dead states
+        live_states = list()
+
+        # Mark states with transistions to the accept states
+        for state in self.states:
+            for _, states in self.transition_table[state].items():
+                for _state in states:
+                    if _state in self.accept_states:
+                        states_to_visit.append(state)
+
+        # Mark the rest of the states by traceback
+        while states_to_visit:
+            origin_state = states_to_visit.pop()
+            live_states.append(origin_state)
+
+            for state in self.states:
+                for _, states in self.transition_table[state].items():
+                    for _state in states:
+                        if _state == origin_state and state not in live_states:
+                            states_to_visit.append(state)
+        # Set new states
+        self.states = live_states
+
+        # Nondistinguishable states
+        p_classes = [set(self.accept_states), self.states.difference(set(self.accept_states))]
+        final_p_classes = list()
+        while p_classes:
+            p_class = p_classes.pop()
+            aux_list = list()
+
+            for c in self.alphabet:
+                for state in p_class:
+                    for a in aux_list:
+                        transition_s = self.transition_table[state][c]
+                        transition_a = self.transition_table[a][c]
+                        for _class in p_class:
+                            if transition_a in _class and transition_s in _class:
+                                a.append(state)
+                                break
+                        if state in a:
+                            break
+                        for _class in final_p_classes:
+                            if transition_a in _class and transition_s in _class:
+                                a.append(state)
+                                break
+                        #
+                        if state in a:
+                            break
+                        aux_list.append(set(state))
+
+                        # new_p_class = set(state)
+                        # final_p_classes.append(new_p_class)
+
+
+
+
+
+
+        # self.hopcroft()
+        print("hello")
+
