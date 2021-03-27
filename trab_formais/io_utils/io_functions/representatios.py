@@ -587,8 +587,38 @@ class AF:
         print(p)
         print(w)
 
+    def remove_from_transition_table(self, states):
+        # esse metodo pode ser usado com afnds(porem n garante q todas as transicoes continuarao n deterministicas)
+        # TODO: decidir se o estado inicial pode ser removido. se não, gerar exceção
+        # retira linhas as linhas referentes aos estados da tabela
+        for state in states:
+            # retira da lista de estados de aceitação, se for o caso
+            if state in self.accept_states:
+                self.accept_states.remove(state)
+            self.transition_table.pop(state)
+        # retira transições de outros estados para esse
+        for origin_state in self.transition_table.keys():
+            # simbolos pelos quais é posivel transitar
+            symbols = list(self.transition_table[origin_state].keys())
+            for symbol in symbols:
+                original_destiny_states = self.transition_table[origin_state][symbol]
+                # nova lista de estados alcançáveis(diferença entre a lista existente e a de estados sendo apagados)
+                new_destiny_states = list(set(original_destiny_states).difference(set(states)))
+                # se após a retirada dos estados da lista states ainda existir alguma transição por symbol, atualiza;
+                if new_destiny_states:
+                    self.transition_table[origin_state].update({symbol: new_destiny_states})
+                    continue
+                # caso nao, remove as transicoes por symbol
+                self.transition_table[origin_state].pop(symbol)
+        # atualiza lista de estados
+        self.states = self.transition_table.keys()
+        self.n_states = len(self.transition_table.keys())
+
     def minimize_af(self):
-        # Unreachable states
+        # como o algoritmo implementado(<nome que esqueci>) só funciona para AFs deterministicos, realiza esse processo
+        # antes dos proximos passos
+        self.determinize()
+        # calcula estados de aceitacao
         reachable_states = list()
         states_to_visit = [self.start_state]
 
@@ -600,8 +630,10 @@ class AF:
                 for state in states:
                     if state not in states_to_visit and state not in reachable_states:
                         states_to_visit.append(state)
-        # Set new states
-        self.states = reachable_states
+
+        # remove referencias a estados inalcançáveis na tabela de transicao e atualiza lista de estados, estados de acei
+        # tacao
+        self.remove_from_transition_table(set(self.states).difference(set(reachable_states)))
 
         # Dead states
         live_states = list()
@@ -623,44 +655,80 @@ class AF:
                     for _state in states:
                         if _state == origin_state and state not in live_states:
                             states_to_visit.append(state)
-        # Set new states
-        self.states = live_states
+
+        self.remove_from_transition_table(set(self.states).difference(set(live_states)))
+        del reachable_states
+        del live_states
 
         # Nondistinguishable states
-        p_classes = [set(self.accept_states), self.states.difference(set(self.accept_states))]
-        final_p_classes = list()
-        while p_classes:
-            p_class = p_classes.pop()
-            aux_list = list()
+        p_classes = [self.accept_states, list(set(self.states).difference(set(self.accept_states)))]
 
-            for c in self.alphabet:
-                for state in p_class:
-                    for a in aux_list:
-                        transition_s = self.transition_table[state][c]
-                        transition_a = self.transition_table[a][c]
-                        for _class in p_class:
-                            if transition_a in _class and transition_s in _class:
-                                a.append(state)
-                                break
-                        if state in a:
-                            break
-                        for _class in final_p_classes:
-                            if transition_a in _class and transition_s in _class:
-                                a.append(state)
-                                break
-                        #
-                        if state in a:
-                            break
-                        aux_list.append(set(state))
+        new_p_class = True
+        # continuara enquanto novas classes forem definidas
+        while new_p_class:
+            new_p_class = False
 
-                        # new_p_class = set(state)
-                        # final_p_classes.append(new_p_class)
+            # tentara quebrar todas as p_classes por um simbolo por vez
+            for symbol in self.alphabet:
+                p_classes_aux = list()
+                for p_class in p_classes:
+                    p_classes.remove(p_class)
+                    # se for 1 já e minimo
+                    if len(p_class) == 1:
+                        p_classes.append(p_class)
+                        continue
+                    # lista que representa a nova p_class q pode surgir
+                    new_p_class = list()
+                    # estado que será usado como pivo(num sei escrever)
+                    pivot = p_class[0]
 
+                    if symbol in self.transition_table[pivot].keys():
+                        # pivot tem transições por symbol
+                        # estado alcançado transicionando pelo simbolo symbol a partir do estado pivot
+                        pivot_destiny = self.transition_table[pivot][symbol][0]
+                        # pega a classe de equivalencia do estado destino de pivot
+                        if pivot_destiny in p_class:
+                            # caso em q a classe de equi do destino e a mesma de origem
+                            pivot_destiny_equivalence_state = p_class
+                        else:
+                            # caso q a classe de equi do destino e outra
+                            pivot_destiny_equivalence_state = [p for p in p_classes if pivot_destiny in p][0]
+                    else:
+                        # pivot n tem transicoes por symbol
+                        pivot_destiny_equivalence_state = []
 
+                    # para cada estado q n é o pivot
+                    for state_to_check in p_class:
+                        # se for o pivot ignora
+                        if state_to_check == pivot:
+                            continue
 
+                        # se state_to_check não tiver transições por symbol
+                        if symbol not in self.transition_table[state_to_check].keys():
+                            # se pivot tb n tiver transições por symbol, ok;
+                            if not pivot_destiny_equivalence_state:
+                                continue
+                            else:
+                                # caso contrario, adiciona a new_p_class
+                                new_p_class.append(state_to_check)
+                                new_p_class = True
+                            continue
 
+                        # se tiver, pega o estado alcançavel por state_to_check
+                        state_destiny = self.transition_table[state_to_check][symbol][0]
 
+                        # verifica se esta na mesma classe do estado alcançado por pivot; se n estiver adiciona a
+                        # new_p_class
+                        if state_destiny not in pivot_destiny_equivalence_state:
+                            new_p_class.append(state_to_check)
+                            new_p_class = True
 
-        # self.hopcroft()
-        print("hello")
+                    p_classes_aux.append(p_class)
+                    # se new_p_class n for nulo, significa q uma nova p_class surgiu, e deve ser adicionada a p_classes
+                    if new_p_class:
+                        p_classes_aux.append(new_p_class)
+                # adiciona novas classes antes de tentar minimizar pelo proximo simbolo
+                p_classes.extend(p_classes_aux)
+
+        #TODO:construir novo AF com base nas classes de equivalencia
 
