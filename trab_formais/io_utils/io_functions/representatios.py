@@ -321,6 +321,14 @@ class AF:
                f"{','.join(self.alphabet)}\n" \
                f"{transition_table_as_string}"
 
+    def get_state_from_trans(self, state, symbol):
+        try:
+            state = self.transition_table[state][symbol]
+        except KeyError:
+            return None
+        else:
+            return next(iter(state))
+
     def get_states_as_vis_nodes(self):
         """
         :return: list
@@ -543,49 +551,49 @@ class AF:
 
         return GR(metadata, prod)
 
-    def hopcroft(self):
-        final_states = set(self.accept_states)
-        non_final_states = set(self.states) - final_states
-
-        p = [final_states, non_final_states]
-        w = [final_states, non_final_states]
-
-        x = set()
-        for state in self.states:
-            for symbol, states in self.transition_table[state].items():
-                for _state in states:
-                    x.add(_state)
-
-        # w is not empty
-        while w:
-            a = w.pop()
-            x = set()
-
-            for c in self.alphabet:
-                for state in self.states:
-                    for symbol, states in self.transition_table[state].items():
-                        for _state in states:
-                            if symbol == c and _state in a:
-                                # let X be the set of states for which a transition on c leads to a state in A
-                                x.add(_state)
-                            for y in p:
-                                y_set = y
-                                # for each set Y in P for which X ∩ Y is nonempty and Y \ X is nonempty do
-                                if not(bool(x & y_set)) and not(bool(x - y_set)):
-                                    p.remove(y_set)
-                                    p.append(x & y_set)
-                                    p.append(x - y_set)
-                                    if y_set in w:
-                                        w.remove(y_set)
-                                        w.append(x & y_set)
-                                        w.append(x - y_set)
-                                    else:
-                                        if len(x & y_set) <= len(x - y_set):
-                                            w.append(x & y_set)
-                                        else:
-                                            w.append(x - y_set)
-        print(p)
-        print(w)
+    # def hopcroft(self):
+    #     final_states = set(self.accept_states)
+    #     non_final_states = set(self.states) - final_states
+    #
+    #     p = [final_states, non_final_states]
+    #     w = [final_states, non_final_states]
+    #
+    #     x = set()
+    #     for state in self.states:
+    #         for symbol, states in self.transition_table[state].items():
+    #             for _state in states:
+    #                 x.add(_state)
+    #
+    #     # w is not empty
+    #     while w:
+    #         a = w.pop()
+    #         x = set()
+    #
+    #         for c in self.alphabet:
+    #             for state in self.states:
+    #                 for symbol, states in self.transition_table[state].items():
+    #                     for _state in states:
+    #                         if symbol == c and _state in a:
+    #                             # let X be the set of states for which a transition on c leads to a state in A
+    #                             x.add(_state)
+    #                         for y in p:
+    #                             y_set = y
+    #                             # for each set Y in P for which X ∩ Y is nonempty and Y \ X is nonempty do
+    #                             if not(bool(x & y_set)) and not(bool(x - y_set)):
+    #                                 p.remove(y_set)
+    #                                 p.append(x & y_set)
+    #                                 p.append(x - y_set)
+    #                                 if y_set in w:
+    #                                     w.remove(y_set)
+    #                                     w.append(x & y_set)
+    #                                     w.append(x - y_set)
+    #                                 else:
+    #                                     if len(x & y_set) <= len(x - y_set):
+    #                                         w.append(x & y_set)
+    #                                     else:
+    #                                         w.append(x - y_set)
+    #     print(p)
+    #     print(w)
 
     def remove_from_transition_table(self, states):
         # esse metodo pode ser usado com afnds(porem n garante q todas as transicoes continuarao n deterministicas)
@@ -614,10 +622,7 @@ class AF:
         self.states = self.transition_table.keys()
         self.n_states = len(self.transition_table.keys())
 
-    def minimize_af(self):
-        # como o algoritmo implementado(<nome que esqueci>) só funciona para AFs deterministicos, realiza esse processo
-        # antes dos proximos passos
-        self.determinize()
+    def remove_unreachable_states(self):
         # calcula estados de aceitacao
         reachable_states = list()
         states_to_visit = [self.start_state]
@@ -635,8 +640,9 @@ class AF:
         # tacao
         self.remove_from_transition_table(set(self.states).difference(set(reachable_states)))
 
-        # Dead states
-        live_states = list()
+    def remove_dead_states(self):
+        live_states = set()
+        states_to_visit = list()
 
         # Mark states with transistions to the accept states
         for state in self.states:
@@ -648,7 +654,7 @@ class AF:
         # Mark the rest of the states by traceback
         while states_to_visit:
             origin_state = states_to_visit.pop()
-            live_states.append(origin_state)
+            live_states.update(origin_state)
 
             for state in self.states:
                 for _, states in self.transition_table[state].items():
@@ -657,78 +663,75 @@ class AF:
                             states_to_visit.append(state)
 
         self.remove_from_transition_table(set(self.states).difference(set(live_states)))
-        del reachable_states
-        del live_states
 
-        # Nondistinguishable states
-        p_classes = [self.accept_states, list(set(self.states).difference(set(self.accept_states)))]
+    def recreate_states(self, p):
+        states = []
+        for state in p:
+            states.append(''.join(state))
+        for state in p:
+            if self.start_state in state:
+                start_state = ''.join(state)
+                break
+        final_states = []
+        for state in p:
+            for final_state in self.accept_states:
+                if final_state in state and ''.join(state) not in final_states:
+                    final_states.append(''.join(state))
 
-        new_p_class = True
-        # continuara enquanto novas classes forem definidas
-        while new_p_class:
-            new_p_class = False
-
-            # tentara quebrar todas as p_classes por um simbolo por vez
+        transitions = {}
+        for state in p:
+            state_name = ''.join(state)
+            transitions[state_name] = {}
             for symbol in self.alphabet:
-                p_classes_aux = list()
-                for p_class in p_classes:
-                    p_classes.remove(p_class)
-                    # se for 1 já e minimo
-                    if len(p_class) == 1:
-                        p_classes.append(p_class)
-                        continue
-                    # lista que representa a nova p_class q pode surgir
-                    new_p_class = list()
-                    # estado que será usado como pivo(num sei escrever)
-                    pivot = p_class[0]
+                destiny = ''
+                if symbol in self.transition_table[state[0]]:
+                    for state2 in p:
+                        for transition_destiny in self.transition_table[state[0]][symbol]:
+                            if transition_destiny in state2:
+                                destiny = ''.join(state2)
+                if destiny:
+                    transitions[state_name][symbol] = [destiny]
 
-                    if symbol in self.transition_table[pivot].keys():
-                        # pivot tem transições por symbol
-                        # estado alcançado transicionando pelo simbolo symbol a partir do estado pivot
-                        pivot_destiny = self.transition_table[pivot][symbol][0]
-                        # pega a classe de equivalencia do estado destino de pivot
-                        if pivot_destiny in p_class:
-                            # caso em q a classe de equi do destino e a mesma de origem
-                            pivot_destiny_equivalence_state = p_class
-                        else:
-                            # caso q a classe de equi do destino e outra
-                            pivot_destiny_equivalence_state = [p for p in p_classes if pivot_destiny in p][0]
-                    else:
-                        # pivot n tem transicoes por symbol
-                        pivot_destiny_equivalence_state = []
+        self.states = states
+        self.start_state = start_state
+        self.accept_states = final_states
+        self.transition_table = transitions
 
-                    # para cada estado q n é o pivot
-                    for state_to_check in p_class:
-                        # se for o pivot ignora
-                        if state_to_check == pivot:
-                            continue
+    def remove_equivalent(self):
+        p = [self.accept_states, [state for state in self.states if state not in self.accept_states]]
+        consistent = False
+        while not consistent:
+            consistent = True
+            for sets in p:
+                for symbol in self.alphabet:
+                    for sett in p:
+                        temp = []
+                        for q in sett:
+                            if symbol in self.transition_table[q]:
+                                for destiny in self.transition_table[q][symbol]:
+                                    if destiny in sets:
+                                        if q not in temp:
+                                            temp.append(q)
+                        if temp and temp != sett:
+                            consistent = False
+                            p.remove(sett)
+                            p.append(temp)
+                            temp_t = list(sett)
+                            for state in temp:
+                                temp_t.remove(state)
 
-                        # se state_to_check não tiver transições por symbol
-                        if symbol not in self.transition_table[state_to_check].keys():
-                            # se pivot tb n tiver transições por symbol, ok;
-                            if not pivot_destiny_equivalence_state:
-                                continue
-                            else:
-                                # caso contrario, adiciona a new_p_class
-                                new_p_class.append(state_to_check)
-                                new_p_class = True
-                            continue
+                            p.append(temp_t)
+        return self.recreate_states(p)
 
-                        # se tiver, pega o estado alcançavel por state_to_check
-                        state_destiny = self.transition_table[state_to_check][symbol][0]
+    def minimize_af(self):
+        # determiniza o AFD para o funcionamento do hopcroft
+        self.determinize()
 
-                        # verifica se esta na mesma classe do estado alcançado por pivot; se n estiver adiciona a
-                        # new_p_class
-                        if state_destiny not in pivot_destiny_equivalence_state:
-                            new_p_class.append(state_to_check)
-                            new_p_class = True
+        # Remove unreachble states
+        self.remove_unreachable_states()
 
-                    p_classes_aux.append(p_class)
-                    # se new_p_class n for nulo, significa q uma nova p_class surgiu, e deve ser adicionada a p_classes
-                    if new_p_class:
-                        p_classes_aux.append(new_p_class)
-                # adiciona novas classes antes de tentar minimizar pelo proximo simbolo
-                p_classes.extend(p_classes_aux)
+        # Remove dead states
+        self.remove_dead_states()
 
-        #TODO:construir novo AF com base nas classes de equivalencia
-
+        # Remove equivalent states and recreate AFD
+        self.remove_equivalent()
