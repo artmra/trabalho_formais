@@ -1,3 +1,6 @@
+from trab_formais.ine5421.GR import GR
+
+
 class AF:
     """
         Classe usada para representar um Autômato Finito
@@ -251,7 +254,7 @@ class AF:
         # mudar o conjunto de estados de aceitação
         self.accept_states = new_accept_states
         # mudar o estado inicial
-        self.start_state = get_name(epsilon_set[self.start_state])
+        self.start_state = self.get_name(epsilon_set[self.start_state])
         # mudar a tabela de transicoes
         self.transition_table = new_transition_table
         # atualizar a lista de statos
@@ -275,7 +278,7 @@ class AF:
         for origin_state, transitions in self.transition_table.items():
             for symbol, destiny_states in transitions.items():
                 if len(destiny_states) > 1:
-                    self.transition_table[origin_state][symbol] = [get_name(destiny_states)]
+                    self.transition_table[origin_state][symbol] = [self.get_name(destiny_states)]
         # atualizar a lista de estados de aceitação
         self.accept_states.extend(new_accept_states)
         # atualizar a lista de estados
@@ -291,7 +294,7 @@ class AF:
         new_accept_states = list()
         while states_to_define:
             new_origin_state = sorted(states_to_define.pop(0))
-            new_origin_state_name = get_name(new_origin_state)
+            new_origin_state_name = self.get_name(new_origin_state)
             is_accept_state = False
             transitions = dict()
             for symbol in self.alphabet:
@@ -312,7 +315,7 @@ class AF:
                 if new_state:
                     # retira elementos repetidos e ordena a lista que contém os estados que compoe o novo estado
                     new_state = sorted(list(set(new_state)))
-                    new_state_name = get_name(new_state)
+                    new_state_name = self.get_name(new_state)
                     # checar se new_state já foi definido; se não, adicioná-lo a lista para definição
                     if new_state_name not in transition_table.keys() and new_state not in states_to_define:
                         states_to_define.append(new_state)
@@ -352,6 +355,7 @@ class AF:
     :return: bool
         Se a palavra pertencer a linguagem, retorna True. Se não, retorna False.
     """
+
     def recognize(self, word):
         # determiniza o automato e usa o obj resultante para tentar reconhecer a palavra 'word'
         self.determinize()
@@ -383,14 +387,278 @@ class AF:
             return True
         return False
 
+    def get_state_from_trans(self, state, symbol):
+        try:
+            state = self.transition_table[state][symbol]
+        except KeyError:
+            return None
+        else:
+            return next(iter(state))
 
+    @staticmethod
+    def get_name(states_list):
+        """
+        :return: string
+            string contendo um novo nome para um conjunto de estados.
+        """
+        if len(states_list) > 1:
+            return '{' + ';'.join(states_list) + '}'
+        return states_list[0]
 
+    def convert_to_gr(self):
+        nao_terminais = ','.join(map(str, self.states))
+        simb_inicial = self.start_state
+        terminais = ','.join(map(str, self.alphabet))
+        metadata = [simb_inicial, nao_terminais, terminais]
+        prod = []
+        for origin, transitions in self.transition_table.items():
+            transition = origin + " -> "
+            idx = 1
+            for symbol, states in transitions.items():
+                for idx2, state in enumerate(states, start=1):
+                    if state in self.accept_states:
+                        transition += "" + symbol
+                    else:
+                        transition += "" + symbol + state
+                    if idx2 < len(states):
+                        print(idx2)
+                        print(states)
+                        transition += " | "
+                if idx < len(transitions):
+                    transition += " | "
+                idx += 1
+            prod.append(transition)
+        return GR(metadata, prod)
 
-def get_name(states_list):
-    """
-    :return: string
-        string contendo um novo nome para um conjunto de estados.
-    """
-    if len(states_list) > 1:
-        return '{' + ';'.join(states_list) + '}'
-    return states_list[0]
+    def remove_from_transition_table(self, states):
+        # esse metodo pode ser usado com afnds(porem n garante q todas as transicoes continuarao n deterministicas)
+        # TODO: decidir se o estado inicial pode ser removido. se não, gerar exceção
+        # retira linhas as linhas referentes aos estados da tabela
+        for state in states:
+            # retira da lista de estados de aceitação, se for o caso
+            if state in self.accept_states:
+                self.accept_states.remove(state)
+            self.transition_table.pop(state)
+        # retira transições de outros estados para esse
+        for origin_state in self.transition_table.keys():
+            # simbolos pelos quais é posivel transitar
+            symbols = list(self.transition_table[origin_state].keys())
+            for symbol in symbols:
+                original_destiny_states = self.transition_table[origin_state][symbol]
+                # nova lista de estados alcançáveis(diferença entre a lista existente e a de estados sendo apagados)
+                new_destiny_states = list(set(original_destiny_states).difference(set(states)))
+                # se após a retirada dos estados da lista states ainda existir alguma transição por symbol, atualiza;
+                if new_destiny_states:
+                    self.transition_table[origin_state].update({symbol: new_destiny_states})
+                    continue
+                # caso nao, remove as transicoes por symbol
+                self.transition_table[origin_state].pop(symbol)
+        # atualiza lista de estados
+        self.states = list(self.transition_table.keys())
+        self.n_states = len(self.transition_table.keys())
+
+    def remove_unreachable_states(self):
+        # calcula estados de aceitacao
+        reachable_states = list()
+        states_to_visit = [self.start_state]
+
+        while states_to_visit:
+            origin_state = states_to_visit.pop()
+            reachable_states.append(origin_state)
+
+            for _, states in self.transition_table[origin_state].items():
+                for state in states:
+                    if state not in states_to_visit and state not in reachable_states:
+                        states_to_visit.append(state)
+
+        # remove referencias a estados inalcançáveis na tabela de transicao e atualiza lista de estados, estados de acei
+        # tacao
+        self.remove_from_transition_table(set(self.states).difference(set(reachable_states)))
+
+    def remove_dead_states(self):
+        live_states = set()
+        states_to_visit = list()
+
+        # Mark states with transistions to the accept states
+        for state in self.states:
+            for _, states in self.transition_table[state].items():
+                for _state in states:
+                    if _state in self.accept_states:
+                        states_to_visit.append(state)
+
+        # Mark the rest of the states by traceback
+        while states_to_visit:
+            origin_state = states_to_visit.pop()
+            live_states.update(origin_state)
+
+            for state in self.states:
+                for _, states in self.transition_table[state].items():
+                    for _state in states:
+                        if _state == origin_state and state not in live_states:
+                            states_to_visit.append(state)
+
+        self.remove_from_transition_table(set(self.states).difference(set(live_states)))
+
+    def recreate_states(self, equi_classes):
+        final_states = []
+        for equi_class in equi_classes:
+            if self.start_state in equi_class:
+                # new first state
+                start_state = self.get_name(equi_class)
+            for final_states in self.accept_states:
+                if final_states in equi_class and self.get_name(equi_class) not in final_states:
+                    # new accept state
+                    final_states.append(self.get_name(equi_class))
+
+        # new transition table
+        transitions = {}
+        for equi_class in equi_classes:
+            first_state = equi_class[0]
+            state_name = self.get_name(equi_class)
+            transitions[state_name] = {}
+            # define os estados para os quais o novo estado deve transicionar, baseado nas classes de equivalencia dos
+            # estados alcançados por um estado(primeiro) dessa classe de equivalencia. Esse estado é o first_state
+            for symbol in self.alphabet:
+                # checa se o estado possui transições pelo simbolo symbol
+                if symbol in self.transition_table[first_state].keys():
+                    # pega o estado alcancado, através de symbol, partindo de first_state
+                    destiny_state = self.transition_table[first_state][symbol][0];
+                    # procura a classe de equivalencia do estado
+                    for equi_class_ in equi_classes:
+                        if destiny_state in equi_class_:
+                            # adiciona o estado a linha da tabela de trans desse estado
+                            transitions[state_name][symbol] = [self.get_name(equi_class_)]
+                    # for state2 in equi_classes:
+                    #     for transition_destiny in self.transition_table[first_state][symbol]:
+                    #         if transition_destiny in state2:
+                    #             destiny = ''.join(state2)
+                    # transitions[state_name][symbol] = [destiny]
+
+        self.start_state = start_state
+        self.accept_states = final_states
+        self.transition_table = transitions
+        self.states = list(self.transition_table.keys())
+
+    def remove_equivalent_1(self):
+        # o q está ocorrendo?
+        p = [self.accept_states, [state for state in self.states if state not in self.accept_states]]
+
+        # condicao de parada
+        consistent = False
+        while not consistent:
+            consistent = True
+
+            # para cada classe nas classes de equivalencia
+            for sets in p:
+                # para cada simbolo do alfabeto
+                for symbol in self.alphabet:
+                    # para cada estado dentro da classe de equivalencia
+                    for sett in p:
+
+                        temp = []
+                        for q in sett:
+                            if symbol in self.transition_table[q]:
+                                for destiny in self.transition_table[q][symbol]:
+                                    if destiny in sets:
+                                        if q not in temp:
+                                            temp.append(q)
+                        if temp and temp != sett:
+                            consistent = False
+                            p.remove(sett)
+                            p.append(temp)
+                            temp_t = list(sett)
+                            for state in temp:
+                                temp_t.remove(state)
+
+                            p.append(temp_t)
+        self.recreate_states(p)
+
+    def remove_equivalent_2(self):
+        p_classes = [self.accept_states, list(set(self.states).difference(set(self.accept_states)))]
+
+        new_p_class = True
+        # continuara enquanto novas classes forem definidas
+        while new_p_class:
+            new_p_class = False
+
+            # tentara quebrar todas as p_classes por um simbolo por vez
+            for symbol in self.alphabet:
+                p_classes_aux = list()
+                for p_class in p_classes:
+                    # se for 1 já e minimo
+                    if len(p_class) == 1:
+                        p_classes_aux.append(p_class)
+                        continue
+                    # lista que representa a nova p_class q pode surgir
+                    new_p_class = list()
+                    # estado que será usado como pivo(num sei escrever)
+                    pivot = p_class[0]
+
+                    if symbol in self.transition_table[pivot].keys():
+                        # pivot tem transições por symbol
+                        # estado alcançado transicionando pelo simbolo symbol a partir do estado pivot
+                        pivot_destiny = self.transition_table[pivot][symbol][0]
+                        # pega a classe de equivalencia do estado destino de pivot
+                        if pivot_destiny in p_class:
+                            # caso em q a classe de equi do destino e a mesma de origem
+                            pivot_destiny_equivalence_state = p_class
+                        else:
+                            # caso q a classe de equi do destino e outra
+                            pivot_destiny_equivalence_state = [p for p in p_classes if pivot_destiny in p][0]
+                    else:
+                        # pivot n tem transicoes por symbol
+                        pivot_destiny_equivalence_state = []
+
+                    # para cada estado q n é o pivot
+                    for state_to_check in p_class:
+                        # se for o pivot ignora
+                        if state_to_check == pivot:
+                            continue
+
+                        # se state_to_check não tiver transições por symbol
+                        if symbol not in self.transition_table[state_to_check].keys():
+                            # se pivot tb n tiver transições por symbol, ok;
+                            if not pivot_destiny_equivalence_state:
+                                continue
+                            else:
+                                # caso contrario, adiciona a new_p_class
+                                new_p_class.append(state_to_check)
+                                new_p_class = True
+                            continue
+
+                        # se tiver, pega o estado alcançavel por state_to_check
+                        state_destiny = self.transition_table[state_to_check][symbol][0]
+
+                        # verifica se esta na mesma classe do estado alcançado por pivot; se n estiver adiciona a
+                        # new_p_class
+                        if state_destiny not in pivot_destiny_equivalence_state:
+                            new_p_class.append(state_to_check)
+                            new_p_class = True
+
+                    p_classes_aux.append(p_class)
+                    # se new_p_class n for nulo, significa q uma nova p_class surgiu, e deve ser adicionada a p_classes
+                    if new_p_class:
+                        p_classes_aux.append(new_p_class)
+                # adiciona novas classes antes de tentar minimizar pelo proximo simbolo
+                p_classes = p_classes_aux
+        self.recreate_states(p_classes)
+
+    def minimize_af_1(self):
+        # determiniza o AFD para o funcionamento do hopcroft
+        self.determinize()
+        # Remove unreachble states
+        self.remove_unreachable_states()
+        # Remove dead states
+        self.remove_dead_states()
+        # Remove equivalent states and recreate AFD
+        self.remove_equivalent_1()
+
+    def minimize_af_2(self):
+        # determiniza o AFD para o funcionamento do hopcroft
+        self.determinize()
+        # Remove unreachble states
+        self.remove_unreachable_states()
+        # Remove dead states
+        self.remove_dead_states()
+        # Remove equivalent states and recreate AFD
+        self.remove_equivalent_2()
