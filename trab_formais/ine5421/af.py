@@ -502,7 +502,7 @@ class AF:
         for equi_class in equi_classes:
             if self.start_state in equi_class:
                 # new first state
-                start_state = self.get_name(equi_class)
+                new_start_state = self.get_name(equi_class)
             for final_state in self.accept_states:
                 if final_state in equi_class and self.get_name(equi_class) not in new_accept_states:
                     # new accept state
@@ -538,7 +538,7 @@ class AF:
         self.states = list(self.transition_table.keys())
 
     def remove_equivalent_1(self):
-        # o q está ocorrendo?
+        # separa p em duas classes, uma contendo estados finais, e a outra o resto dos estados
         p = [self.accept_states, [state for state in self.states if state not in self.accept_states]]
 
         # condicao de parada
@@ -651,6 +651,7 @@ class AF:
         self.remove_dead_states()
         # Remove equivalent states and recreate AFD
         self.remove_equivalent_1()
+        print("helo")
 
     def minimize_af_2(self):
         # determiniza o AFD para o funcionamento do hopcroft
