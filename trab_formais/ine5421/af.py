@@ -1,6 +1,3 @@
-from trab_formais.ine5421.GR import GR
-
-
 class AF:
     """
         Classe usada para representar um Autômato Finito
@@ -405,30 +402,30 @@ class AF:
             return '{' + ';'.join(states_list) + '}'
         return states_list[0]
 
-    def convert_to_gr(self):
-        nao_terminais = ','.join(map(str, self.states))
-        simb_inicial = self.start_state
-        terminais = ','.join(map(str, self.alphabet))
-        metadata = [simb_inicial, nao_terminais, terminais]
-        prod = []
-        for origin, transitions in self.transition_table.items():
-            transition = origin + " -> "
-            idx = 1
-            for symbol, states in transitions.items():
-                for idx2, state in enumerate(states, start=1):
-                    if state in self.accept_states:
-                        transition += "" + symbol
-                    else:
-                        transition += "" + symbol + state
-                    if idx2 < len(states):
-                        print(idx2)
-                        print(states)
-                        transition += " | "
-                if idx < len(transitions):
-                    transition += " | "
-                idx += 1
-            prod.append(transition)
-        return GR(metadata, prod)
+    # def convert_to_gr(self):
+    #     nao_terminais = ','.join(map(str, self.states))
+    #     simb_inicial = self.start_state
+    #     terminais = ','.join(map(str, self.alphabet))
+    #     metadata = [simb_inicial, nao_terminais, terminais]
+    #     prod = []
+    #     for origin, transitions in self.transition_table.items():
+    #         transition = origin + " -> "
+    #         idx = 1
+    #         for symbol, states in transitions.items():
+    #             for idx2, state in enumerate(states, start=1):
+    #                 if state in self.accept_states:
+    #                     transition += "" + symbol
+    #                 else:
+    #                     transition += "" + symbol + state
+    #                 if idx2 < len(states):
+    #                     print(idx2)
+    #                     print(states)
+    #                     transition += " | "
+    #             if idx < len(transitions):
+    #                 transition += " | "
+    #             idx += 1
+    #         prod.append(transition)
+    #     return GR(metadata, prod)
 
     def remove_from_transition_table(self, states):
         # esse metodo pode ser usado com afnds(porem n garante q todas as transicoes continuarao n deterministicas)
@@ -500,15 +497,16 @@ class AF:
         self.remove_from_transition_table(set(self.states).difference(set(live_states)))
 
     def recreate_states(self, equi_classes):
-        final_states = []
+        new_accept_states = []
+        new_start_state = None
         for equi_class in equi_classes:
             if self.start_state in equi_class:
                 # new first state
                 start_state = self.get_name(equi_class)
-            for final_states in self.accept_states:
-                if final_states in equi_class and self.get_name(equi_class) not in final_states:
+            for final_state in self.accept_states:
+                if final_state in equi_class and self.get_name(equi_class) not in new_accept_states:
                     # new accept state
-                    final_states.append(self.get_name(equi_class))
+                    new_accept_states.append(self.get_name(equi_class))
 
         # new transition table
         transitions = {}
@@ -534,8 +532,8 @@ class AF:
                     #             destiny = ''.join(state2)
                     # transitions[state_name][symbol] = [destiny]
 
-        self.start_state = start_state
-        self.accept_states = final_states
+        self.start_state = new_start_state
+        self.accept_states = new_accept_states
         self.transition_table = transitions
         self.states = list(self.transition_table.keys())
 
@@ -576,10 +574,10 @@ class AF:
     def remove_equivalent_2(self):
         p_classes = [self.accept_states, list(set(self.states).difference(set(self.accept_states)))]
 
-        new_p_class = True
+        new_p_class_created = True
         # continuara enquanto novas classes forem definidas
-        while new_p_class:
-            new_p_class = False
+        while new_p_class_created:
+            new_p_class_created = False
 
             # tentara quebrar todas as p_classes por um simbolo por vez
             for symbol in self.alphabet:
@@ -589,8 +587,10 @@ class AF:
                     if len(p_class) == 1:
                         p_classes_aux.append(p_class)
                         continue
+                    # lista que representa a p_class que está sendo verificada
+                    p_class_aux = list()
                     # lista que representa a nova p_class q pode surgir
-                    new_p_class = list()
+                    new_p_class_aux = list()
                     # estado que será usado como pivo(num sei escrever)
                     pivot = p_class[0]
 
@@ -599,12 +599,7 @@ class AF:
                         # estado alcançado transicionando pelo simbolo symbol a partir do estado pivot
                         pivot_destiny = self.transition_table[pivot][symbol][0]
                         # pega a classe de equivalencia do estado destino de pivot
-                        if pivot_destiny in p_class:
-                            # caso em q a classe de equi do destino e a mesma de origem
-                            pivot_destiny_equivalence_state = p_class
-                        else:
-                            # caso q a classe de equi do destino e outra
-                            pivot_destiny_equivalence_state = [p for p in p_classes if pivot_destiny in p][0]
+                        pivot_destiny_equivalence_state = [p for p in p_classes if pivot_destiny in p][0]
                     else:
                         # pivot n tem transicoes por symbol
                         pivot_destiny_equivalence_state = []
@@ -613,17 +608,19 @@ class AF:
                     for state_to_check in p_class:
                         # se for o pivot ignora
                         if state_to_check == pivot:
+                            p_class_aux.append(state_to_check)
                             continue
 
                         # se state_to_check não tiver transições por symbol
                         if symbol not in self.transition_table[state_to_check].keys():
                             # se pivot tb n tiver transições por symbol, ok;
                             if not pivot_destiny_equivalence_state:
+                                p_class_aux.append(state_to_check)
                                 continue
                             else:
                                 # caso contrario, adiciona a new_p_class
-                                new_p_class.append(state_to_check)
-                                new_p_class = True
+                                new_p_class_aux.append(state_to_check)
+                                new_p_class_created = True
                             continue
 
                         # se tiver, pega o estado alcançavel por state_to_check
@@ -632,13 +629,15 @@ class AF:
                         # verifica se esta na mesma classe do estado alcançado por pivot; se n estiver adiciona a
                         # new_p_class
                         if state_destiny not in pivot_destiny_equivalence_state:
-                            new_p_class.append(state_to_check)
-                            new_p_class = True
+                            new_p_class_aux.append(state_to_check)
+                            new_p_class_created = True
+                            continue
+                        p_class_aux.append(state_to_check)
 
-                    p_classes_aux.append(p_class)
+                    p_classes_aux.append(p_class_aux)
                     # se new_p_class n for nulo, significa q uma nova p_class surgiu, e deve ser adicionada a p_classes
-                    if new_p_class:
-                        p_classes_aux.append(new_p_class)
+                    if new_p_class_aux:
+                        p_classes_aux.append(new_p_class_aux)
                 # adiciona novas classes antes de tentar minimizar pelo proximo simbolo
                 p_classes = p_classes_aux
         self.recreate_states(p_classes)
