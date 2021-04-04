@@ -1,5 +1,4 @@
-from ine5421.functions import read_af_file
-import time
+from trab_formais.io_utils.models.functions import read_af_file
 
 BASE_ADDRESS = 'trab_formais/test-files'
 af1 = 'D:/Users/bryan/Desktop/Formais/Trabalho 1/trabalho_formais/trab_formais/test-files/minimizacao/teste3-minimizacao.jff'

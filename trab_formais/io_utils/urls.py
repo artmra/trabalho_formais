@@ -1,6 +1,6 @@
 from django.urls import path
 # from ine5421.views import UserViewSet, GroupViewSet
-from ine5421 import views
+from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
