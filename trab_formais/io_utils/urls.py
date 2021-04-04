@@ -12,6 +12,10 @@ urlpatterns = [
     path('af/upload_af_file', views.upload_af_file, name='upload_af'),
     path('af/download_af_file', views.download_af_file, name='download_af'),
     path('af/update_af_file/', views.update_af_file, name='update_af'),
+    path('af/convert_to_gr/', views.download_converted_gr, name='convert_to_gr'),
+    path('af/determinize/', views.determinize, name='determinize'),
+    path('af/minimize/', views.minimize, name='minimize'),
+    path('af/recognize/', views.recognize, name='recognize'),
 
     path('er', views.regular_expression),
     path('er/update_or_upload', views.update_or_upload_er, name='options_er'),
@@ -24,4 +28,5 @@ urlpatterns = [
     path('gr/upload_gr_file', views.upload_gr_file, name='upload_gr'),
     path('gr/download_gr_file', views.download_gr_file, name='download_gr'),
     path('gr/update_gr_file/', views.update_gr_file, name='update_gr'),
+    path('gr/convert_to_af/', views.download_converted_af, name='convert_to_af'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

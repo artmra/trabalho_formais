@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'baseER.html' %}
 {% block title %}
 	EXPRESSÕES REGULARES
 {% endblock title %}
@@ -18,7 +18,5 @@
 	<input type="submit" value="Atualizar ER" name="option"/>
 {% endblock update-option %}
 {% block download %}
-	<form>
-		  <button formaction="{% url 'download_er' %}">Download</button>
-    </form>
+    <button formaction="{% url 'download_er' %}">Download</button>
 {% endblock download %}

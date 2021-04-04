@@ -255,6 +255,7 @@ class AF:
         """
         :return:
         """
+        print('determinizando com epsilon')
         # calcula o epsilon fecho
         epsilon_set = self.calculate_epsilon_set()
         states_to_define = [epsilon_set[self.start_state]]
@@ -277,6 +278,7 @@ class AF:
         """
         :return:
         """
+        print('determinizando sem epsilon')
         states_to_define = []
         # primeiro percorre para obter novos estados e os adiciona em states_to_define
         for transitions in self.transition_table.values():
@@ -630,6 +632,7 @@ class AF:
         """
         :return:
         """
+        print(self.__str__())
         # determiniza o AFD para o funcionamento do hopcroft
         self.determinize()
         # Remove unreachble states
@@ -638,3 +641,4 @@ class AF:
         self.remove_dead_states()
         # Remove equivalent states and recreate AFD
         self.remove_equivalent()
+        print(self.__str__())
