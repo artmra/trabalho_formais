@@ -1,6 +1,26 @@
 class ER:
     """
     Classe usada para representar uma Expressão Regular
+
+    Attributes
+    ----------
+    expression: str
+        Expressão regular
+
+    Methods
+    -------
+    is_parenthesis_ok()
+        Retorna true caso os parêntesis estejam organizados de forma correta e false caso contrário
+    is_symbols_ok()
+        Retorna true caso a disposição dos símbolos faça sentido e false caso contrário
+    write_to_file(str=filename)
+        Método para escrever a ER em um arquivo de path 'filename'
+    concatenate(str=expression1, str=expression2)
+        Retorna a concatenação dos parâmetros 'expression1' e 'expression2'
+    union(str=expression1, str=expression2)
+        Retorna a união dos parâmetros 'expression1' e 'expression2'
+    star(expression)
+        Retorna o fecho da ER de entrada 'expression'
     """
 
     ERRO_1 = "Formato de expressão incorreto"

@@ -39,8 +39,22 @@ class AF:
             Define novos estados para o AF se baseando em uma lista passada como parâmetro.
         calculate_epsilon_set()
             Retorna um dicionário de lista que simula a função &-fecho para cada estado do AF
-
-
+        recognize(str=word)
+            Retorna true se a palavra 'word' é reconhecida pelo AF, ou false caso contrário
+        get_name(str=state_list)
+            Retorna um novo nome para o conjunto de estados da entrada
+        remove_from_transition_table(states)
+            Remove a lista de estados 'states' da tabela de transição
+        remove_unreachable_states()
+            Remove estados inalcançaveis do automato
+        remove_dead_states()
+            Remove estados mortos do automato
+        recreate_states(equi_classes)
+            Recria o AF a partir da lista de estados 'equi_classes' que são as novas classes de equivalência
+        remove_equivalent()
+            Remove classes de equivalência do AF utilizando o método de Hopcroft
+        minimize_af()
+            Método central que chama os demais métodos para a completa minimização do AFD
         """
     ERRO_1 = "O número de estados deve ser inteiro e maior que 0.(linha 1)"
     ERRO_2 = "Não há estado inicial.(linha 2)"
@@ -346,14 +360,13 @@ class AF:
             epsilon_set.update({origin_state: reachable_states})
         return epsilon_set
 
-    """
-    :param word: str
-        Palavra que se deseja tentar reconhecer com o AF.
-    :return: bool
-        Se a palavra pertencer a linguagem, retorna True. Se não, retorna False.
-    """
-
     def recognize(self, word):
+        """
+        :param word: str
+            Palavra que se deseja tentar reconhecer com o AF.
+        :return: bool
+            Se a palavra pertencer a linguagem, retorna True. Se não, retorna False.
+        """
         # determiniza o automato e usa o obj resultante para tentar reconhecer a palavra 'word'
         self.determinize()
         world_len = len(word)
@@ -384,17 +397,11 @@ class AF:
             return True
         return False
 
-    def get_state_from_trans(self, state, symbol):
-        try:
-            state = self.transition_table[state][symbol]
-        except KeyError:
-            return None
-        else:
-            return next(iter(state))
-
     @staticmethod
     def get_name(states_list):
         """
+        :param states_list: str
+            lista de estados
         :return: string
             string contendo um novo nome para um conjunto de estados.
         """
@@ -403,6 +410,10 @@ class AF:
         return states_list[0]
 
     # def convert_to_gr(self):
+    #     """
+    #     :return: GR
+    #         Objeto GR contendo os metadados, para auxilio na criação do objeto, como também as produções gramaticais
+    #     """
     #     nao_terminais = ','.join(map(str, self.states))
     #     simb_inicial = self.start_state
     #     terminais = ','.join(map(str, self.alphabet))
@@ -428,6 +439,9 @@ class AF:
     #     return GR(metadata, prod)
 
     def remove_from_transition_table(self, states):
+        """
+        :return:
+        """
         # esse metodo pode ser usado com afnds(porem n garante q todas as transicoes continuarao n deterministicas)
         # TODO: decidir se o estado inicial pode ser removido. se não, gerar exceção
         # retira linhas as linhas referentes aos estados da tabela
@@ -455,10 +469,13 @@ class AF:
         self.n_states = len(self.transition_table.keys())
 
     def remove_unreachable_states(self):
+        """
+        :return:
+        """
         # calcula estados de aceitacao
         reachable_states = list()
         states_to_visit = [self.start_state]
-
+        # Adiciona a lista reachable states estados alcançaveis, começando pelo estado inicial
         while states_to_visit:
             origin_state = states_to_visit.pop()
             reachable_states.append(origin_state)
@@ -473,17 +490,19 @@ class AF:
         self.remove_from_transition_table(set(self.states).difference(set(reachable_states)))
 
     def remove_dead_states(self):
+        """
+        :return:
+        """
         live_states = set()
         states_to_visit = list()
-
-        # Mark states with transistions to the accept states
+        # Marca estados com transições para os estados finais
         for state in self.states:
             for _, states in self.transition_table[state].items():
                 for _state in states:
                     if _state in self.accept_states:
                         states_to_visit.append(state)
 
-        # Mark the rest of the states by traceback
+        # Marca o resto dos estados por rastreação
         while states_to_visit:
             origin_state = states_to_visit.pop()
             live_states.update(origin_state)
@@ -493,22 +512,26 @@ class AF:
                     for _state in states:
                         if _state == origin_state and state not in live_states:
                             states_to_visit.append(state)
-
+        # Remove referencias dos estados mortos na tabela de transição e atualiza os estados
         self.remove_from_transition_table(set(self.states).difference(set(live_states)))
 
     def recreate_states(self, equi_classes):
+        """
+        :return:
+        """
         new_accept_states = []
         new_start_state = None
+        # A partir das novas classes de equivalencia, atribui aos novos atributos do AF
         for equi_class in equi_classes:
             if self.start_state in equi_class:
-                # new first state
+                # Novo estado inicial
                 new_start_state = self.get_name(equi_class)
             for final_state in self.accept_states:
                 if final_state in equi_class and self.get_name(equi_class) not in new_accept_states:
-                    # new accept state
+                    # Novo estado de aceitação
                     new_accept_states.append(self.get_name(equi_class))
 
-        # new transition table
+        # Nova tabela de transição
         transitions = {}
         for equi_class in equi_classes:
             first_state = equi_class[0]
@@ -526,52 +549,13 @@ class AF:
                         if destiny_state in equi_class_:
                             # adiciona o estado a linha da tabela de trans desse estado
                             transitions[state_name][symbol] = [self.get_name(equi_class_)]
-                    # for state2 in equi_classes:
-                    #     for transition_destiny in self.transition_table[first_state][symbol]:
-                    #         if transition_destiny in state2:
-                    #             destiny = ''.join(state2)
-                    # transitions[state_name][symbol] = [destiny]
-
+        # Atribui os novos valores para o AF
         self.start_state = new_start_state
         self.accept_states = new_accept_states
         self.transition_table = transitions
         self.states = list(self.transition_table.keys())
 
-    def remove_equivalent_1(self):
-        # separa p em duas classes, uma contendo estados finais, e a outra o resto dos estados
-        p = [self.accept_states, [state for state in self.states if state not in self.accept_states]]
-
-        # condicao de parada
-        consistent = False
-        while not consistent:
-            consistent = True
-
-            # para cada classe nas classes de equivalencia
-            for sets in p:
-                # para cada simbolo do alfabeto
-                for symbol in self.alphabet:
-                    # para cada estado dentro da classe de equivalencia
-                    for sett in p:
-
-                        temp = []
-                        for q in sett:
-                            if symbol in self.transition_table[q]:
-                                for destiny in self.transition_table[q][symbol]:
-                                    if destiny in sets:
-                                        if q not in temp:
-                                            temp.append(q)
-                        if temp and temp != sett:
-                            consistent = False
-                            p.remove(sett)
-                            p.append(temp)
-                            temp_t = list(sett)
-                            for state in temp:
-                                temp_t.remove(state)
-
-                            p.append(temp_t)
-        self.recreate_states(p)
-
-    def remove_equivalent_2(self):
+    def remove_equivalent(self):
         p_classes = [self.accept_states, list(set(self.states).difference(set(self.accept_states)))]
 
         new_p_class_created = True
@@ -642,7 +626,10 @@ class AF:
                 p_classes = p_classes_aux
         self.recreate_states(p_classes)
 
-    def minimize_af_1(self):
+    def minimize_af(self):
+        """
+        :return:
+        """
         # determiniza o AFD para o funcionamento do hopcroft
         self.determinize()
         # Remove unreachble states
@@ -650,15 +637,4 @@ class AF:
         # Remove dead states
         self.remove_dead_states()
         # Remove equivalent states and recreate AFD
-        self.remove_equivalent_1()
-        print("helo")
-
-    def minimize_af_2(self):
-        # determiniza o AFD para o funcionamento do hopcroft
-        self.determinize()
-        # Remove unreachble states
-        self.remove_unreachable_states()
-        # Remove dead states
-        self.remove_dead_states()
-        # Remove equivalent states and recreate AFD
-        self.remove_equivalent_2()
+        self.remove_equivalent()
