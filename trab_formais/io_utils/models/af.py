@@ -64,7 +64,8 @@ class AF:
     ERRO_6_1 = "O símbolo \""
     ERRO_6_2 = "\" não pertence ao alfabeto definido.(linha "
 
-    def __init__(self, meta_data, transitions):
+    #def __init__(self, meta_data, transitions):
+    def __init__(self, meta_data, transitions, n_states=0, start_state='', accept_states=None, alphabet=None, transition_table=None, is_afnd=False, states=None):
         """
         :param meta_data: list
             lista contendo, NA SEGUINTE ORDEM: número de estados, estado inicial, estados de aceitação, alfabeto.
@@ -73,6 +74,17 @@ class AF:
         :raise Exception:
             erro referente a falha no processo de leitura das informações do AF
         """
+
+        if states is not None:
+            self.n_states = n_states
+            self.start_state = start_state
+            self.accept_states = accept_states
+            self.alphabet = alphabet
+            self.transition_table = transition_table
+            self.is_afnd = is_afnd
+            self.states = states
+            return
+
         # lê o numero de estados
         try:
             self.n_states = int(meta_data[0])

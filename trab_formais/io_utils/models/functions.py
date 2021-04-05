@@ -127,3 +127,41 @@ def convert_to_af(self):
 
     meta = [len(estados), estado_inicial, estados_aceitacao, alfabeto]
     return AF(meta, trans)
+
+def union_afs(af1, af2, inter):
+    n_states = af1.n_states * af2.n_states
+    start_state = af1.start_state + '-' + af2.start_state
+    states = []
+    for s1 in af1.states:
+        for s2 in af2.states:
+            states.append(s1 + '-' + s2)
+    accept_states = []
+    if inter:
+        for s1 in af1.accept_states:
+            for s2 in af2.accept_states:
+                accept_states.append(s1 + '-' + s2)
+    else:
+        for acpt_states in af1.accept_states:
+            for s in states:
+                if s.split('-')[0] == acpt_states:
+                    accept_states.append(s)
+        for acpt_states in af2.accept_states:
+            for s in states:
+                if s.split('-')[1] == acpt_states:
+                    accept_states.append(s)
+        accept_states = list(dict.fromkeys(accept_states))
+    alphabet = list(dict.fromkeys(af1.alphabet + af2.alphabet))
+    transition_table = {}
+    for s in states:
+        for symbol in alphabet:
+            try:
+                new_transition_p1 = ''.join(af1.transition_table[s.split('-')[0]][symbol]) + '-'
+                new_transition_p2 = ''.join(af2.transition_table[s.split('-')[1]][symbol])
+                if s in transition_table:
+                    transition_table[s].update({symbol: [new_transition_p1 + new_transition_p2]})
+                else:
+                    transition_table.update({s: {symbol: [new_transition_p1 + new_transition_p2]}})
+            except KeyError:
+                continue
+    is_AFND = False
+    return AF(None, None, n_states, start_state, accept_states, alphabet, transition_table, is_AFND, states)

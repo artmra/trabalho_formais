@@ -10,6 +10,8 @@
 {% endblock form1 %}
 {% block choose-file %}
 	<input type="file" name="afFile" id="afFile">
+    <input type="submit" value="União" name="option">
+    <input type="submit" value="Interseção" name="option">
 {% endblock choose-file %}
 {% block text-area %}
 	<textarea cols="40" rows="20" name="file_content" id="file_content">{{ file_content }}</textarea>
@@ -25,6 +27,9 @@
         {% endif %}
     {% endif %}
 {% endblock recognize %}
+{% block union %}
+    <button formaction="{% url 'download_af' %}">Download</button>
+{% endblock union %}
 {% block update-option %}
 	<input type="submit" value="Atualizar AF" name="option"/>
 {% endblock update-option %}

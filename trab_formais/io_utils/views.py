@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.conf import settings
 
 from .forms import InputForm, GrammarForm
-from .models.functions import read_gr_file, read_af_string, read_gr_string, convert_to_gr, convert_to_af
+from .models.functions import read_gr_file, read_af_string, read_gr_string, convert_to_gr, convert_to_af, union_afs
 from json import dumps
 
 import os
@@ -39,6 +39,10 @@ def update_or_upload_af(request):
         return upload_af_file(request)
     elif request.POST['option'] == 'Atualizar AF':
         return update_af_file(request)
+    elif request.POST['option'] == 'União':
+        return af_union(request)
+    elif request.POST['option'] == 'Interseção':
+        return af_union(request, inter=True)
 
 
 def update_af_file(request):
@@ -215,6 +219,7 @@ def minimize(request):
     return response
 
 def recognize(request):
+
     context = dict()
     try:
         file_content = request.POST['file_content']
@@ -270,6 +275,43 @@ def recognize(request):
                             })
     return render(request, 'af.html', context)
 
+
+def af_union(request, inter=False):
+    context = dict()
+    try:
+        uploaded_file = request.FILES['afFile']
+    except:
+        context.update({'error1': 'Você não selecionou um arquivo.'})
+    if 'error1' not in context.keys():
+        # writing file for temp use
+        output_file = open(FILENAME_AF, 'w')
+        # Check size of file, only open if its not too big
+        if not uploaded_file.multiple_chunks():
+            file_content = str(uploaded_file.read(), 'utf-8')
+            output_file.write(file_content)
+        else:
+            print('File too big')
+        output_file.close()
+
+        try:
+            af2 = read_af_string(file_content)
+        except Exception as e:
+            context.update({'error1': e})
+
+    af1 = read_af_string(request.POST.get('file_content'))
+
+    af_final = union_afs(af1, af2, inter)
+
+    try:
+        # obtém os dados necessários para gerar os grafos aqui
+        context.update({'file_content': af_final.string_in_file_format(),
+                        'afnodes': dumps(af_final.get_states_as_vis_nodes()),
+                        'afedges': dumps(af_final.get_transitions_as_vis_edges()),
+                        })
+    except Exception as e:
+        context.update({'error2': e})
+        context.update({'file_content': af_final.string_in_file_format()})
+    return render(request, 'af.html', context)
 
 #######################################################################################################################
 #                                                    GR endpoints                                                     #
