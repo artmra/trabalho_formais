@@ -59,8 +59,6 @@ def read_gr_lines(lines):
             i += 1
             if line != "":
                 productions.append(line)
-        # meta_data = [lines[x].replace(" ", "").strip() for x in range(3)]
-        # productions = [lines[x].replace(" ", "").strip() for x in range(3, len(lines))]
     except:
         raise Exception(ERROR + "GR.")
     return meta_data, productions
@@ -92,28 +90,26 @@ def convert_to_gr(af):
     return GR(metadata, prod)
 
 
-def convert_to_af(self):
-    # metadata = [numero de estados, estado inicial, [estados de aceitação], [alfabeto]]
-    # transitions = [transicoes]
-    estado_inicial = self.start_symbol
-    alfabeto_list = self.terminals
+def convert_to_af(gr):
+    estado_inicial = gr.start_symbol
+    alfabeto_list = gr.terminals
 
     if "&" in alfabeto_list:
         alfabeto_list.remove("&")
 
     alfabeto = ','.join(map(str, alfabeto_list))
-    estados = self.non_terminals
+    estados = gr.non_terminals
     # criado novo estado para o AF
     estados_aceitacao_list = ["F1"]
 
     # caso a gramatica aceite a palavra vazia, o estado inicial é de aceitação também
-    if "&" in self.productions.get("S"):
+    if "&" in gr.productions.get("S"):
         estados_aceitacao_list.append("S")
 
     estados_aceitacao = ','.join(map(str, estados_aceitacao_list))
     trans = []
-    for k in self.productions.keys():
-        for p in self.productions.get(k):
+    for k in gr.productions.keys():
+        for p in gr.productions.get(k):
             ## transiçoes do tipo S -> aA
             if len(p) == 2:
                 letter = p[0]

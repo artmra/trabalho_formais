@@ -1,42 +1,26 @@
 class ER:
     """
     Classe usada para representar uma Expressão Regular
-
-    Attributes
-    ----------
-    expression: str
-        Expressão regular
-
-    Methods
-    -------
-    is_parenthesis_ok()
-        Retorna true caso os parêntesis estejam organizados de forma correta e false caso contrário
-    is_symbols_ok()
-        Retorna true caso a disposição dos símbolos faça sentido e false caso contrário
-    write_to_file(str=filename)
-        Método para escrever a ER em um arquivo de path 'filename'
-    concatenate(str=expression1, str=expression2)
-        Retorna a concatenação dos parâmetros 'expression1' e 'expression2'
-    union(str=expression1, str=expression2)
-        Retorna a união dos parâmetros 'expression1' e 'expression2'
-    star(expression)
-        Retorna o fecho da ER de entrada 'expression'
     """
 
-    ERRO_1 = "Formato de expressão incorreto"
+    ERRO_1 = "Parêntensis ordenados de maneira incorreta"
+    ERRO_2 = "Símbolo de final de expressão incorreto"
+    ERRO_3 = "Sequência de símbolos incorreta ('||', '|*', '*+', '+*', '+?', '?+')"
 
     def __init__(self, expression):
         self.expression = expression
+        self.alphabet = set(c for c in expression if c not in '#|*?()&')
 
         # verifica se as aberturas e fechamentos de parênteses estão ok
-        if not (self.is_parenthesis_ok() and self.is_symbols_ok()):
-            raise Exception(self.ERRO_1)
+        try:
+            self.is_parenthesis_ok()
+            self.is_symbols_ok()
+        except Exception as e:
+            print(e)
 
     def is_parenthesis_ok(self):
         """
-        :return: Bool
-            True: caso os parêntesis estejam organizados de maneira adequada
-            False: em caso de erro na organização dos parêntesis
+        :raise: ERRO_1 em caso de organização incorreta nos parêntesis
         """
         while True:
             stack = []
@@ -51,21 +35,22 @@ class ER:
                     else:
                         stack.pop()
 
-            if not stack:
-                return True
-            return False
+            if stack:
+                raise Exception(self.ERRO_1)
 
     def is_symbols_ok(self):
         """
-        :return: Bool
-            True: se não houver organização incorreta de símbolos
-            False: se houver organização incorreta
+        :raise:
+            ERRO_2 quando símbolo de fim de expressão não for '#'
+            ERRO_3 quando houver sequência de símbolos incorreta na expressão
         """
-        non_accepted_order = ['||', '|*', '*+', '+*', '+?', '?+']
+        # primeiro confirma se o último caractere é '#'
+        if self.expression.strip()[-1] not in '#':
+            raise Exception(self.ERRO_2)
+        non_accepted_order = ['||', '|*', '*+', '+*', '+?', '?+', '()']
         for sym in non_accepted_order:
             if sym in self.expression:
-                return False
-        return True
+                raise Exception(self.ERRO_3)
 
     def write_to_file(self, filename):
         """
@@ -84,7 +69,7 @@ class ER:
         :return: str
             resultado da concatenação das expressões.
         """
-        return expression1 + expression2
+        return '(' + expression1 + ')(' + expression2 + ')'
 
     @staticmethod
     def union(expression1, expression2):
@@ -105,3 +90,15 @@ class ER:
             fecho da expressão de entrada.
         """
         return '(' + expression + ')*'
+
+    def convert_to_af(self):
+        """
+        :return: AF
+            AFD equivalente a esse ER.
+        """
+        import tree
+        # cria uma árvore e realiza a conversão do ER para AFD
+        t = tree.Tree(self.alphabet)
+        af = t.make_tree(self.expression)
+        # automato pronto
+        return af

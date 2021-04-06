@@ -75,7 +75,8 @@ class AF:
             erro referente a falha no processo de leitura das informações do AF
         """
 
-        if states is not None:
+        # constrói AF com informações obtidas de maneira externa, caso states n seja None, ou um AF com valores padrão
+        if states is not None or (meta_data is None and transitions is None):
             self.n_states = n_states
             self.start_state = start_state
             self.accept_states = accept_states
@@ -423,41 +424,10 @@ class AF:
             return '{' + ';'.join(states_list) + '}'
         return states_list[0]
 
-    # def convert_to_gr(self):
-    #     """
-    #     :return: GR
-    #         Objeto GR contendo os metadados, para auxilio na criação do objeto, como também as produções gramaticais
-    #     """
-    #     nao_terminais = ','.join(map(str, self.states))
-    #     simb_inicial = self.start_state
-    #     terminais = ','.join(map(str, self.alphabet))
-    #     metadata = [simb_inicial, nao_terminais, terminais]
-    #     prod = []
-    #     for origin, transitions in self.transition_table.items():
-    #         transition = origin + " -> "
-    #         idx = 1
-    #         for symbol, states in transitions.items():
-    #             for idx2, state in enumerate(states, start=1):
-    #                 if state in self.accept_states:
-    #                     transition += "" + symbol
-    #                 else:
-    #                     transition += "" + symbol + state
-    #                 if idx2 < len(states):
-    #                     print(idx2)
-    #                     print(states)
-    #                     transition += " | "
-    #             if idx < len(transitions):
-    #                 transition += " | "
-    #             idx += 1
-    #         prod.append(transition)
-    #     return GR(metadata, prod)
-
     def remove_from_transition_table(self, states):
         """
         :return:
         """
-        # esse metodo pode ser usado com afnds(porem n garante q todas as transicoes continuarao n deterministicas)
-        # TODO: decidir se o estado inicial pode ser removido. se não, gerar exceção
         # retira linhas as linhas referentes aos estados da tabela
         for state in states:
             # retira da lista de estados de aceitação, se for o caso
@@ -570,6 +540,9 @@ class AF:
         self.states = list(self.transition_table.keys())
 
     def remove_equivalent(self):
+        """
+        :return:
+        """
         p_classes = [self.accept_states, list(set(self.states).difference(set(self.accept_states)))]
 
         new_p_class_created = True
