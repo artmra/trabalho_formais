@@ -123,6 +123,19 @@ def download_af_file(request):
 
 
 def af_union(request, inter=False):
+    """Modifica a área de texto para uma AF resultado da união ou interseção
+    da AF previamente contida pela área de texto e a AF recém selecionada em
+    arquivo.
+    
+    Utiliza o algoritmo da Construção por Produto para união e interseção.
+    
+    Parameters
+    ----------
+    request : HttpRequest
+        Requisição web feita pelo usuário através do navegador
+    inter : bool
+        Se `inter` for `True`, a interseção das AFs é feita ao invés da união
+    """
     context = dict()
     try:
         uploaded_file = request.FILES['afFile']
@@ -191,6 +204,7 @@ def af_union(request, inter=False):
     except Exception as e:
         context.update({'error2': e})
         context.update({'file_content': union_af.string_in_file_format()})
+    # É fortemente recomendado minizar o AF antes de retornar
     return render(request, 'af.html', context)
 
 
