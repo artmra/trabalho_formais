@@ -114,13 +114,13 @@ def upload_af_file(request):
                                 'file_content': af_string,
                                 'afnodes': dumps(af.get_states_as_vis_nodes()),
                                 'afedges': dumps(af.get_transitions_as_vis_edges()),
+                                'tried_recognize': False,
                                 })
             except Exception as e:
                 context.update({'error2': e})
                 context.update({'file_content': af_string,
                                 'form': InputForm()})
         else:
-            print("here 2")
             context.update({'form': InputForm()})
     return render(request, 'af.html', context)
 
@@ -156,75 +156,59 @@ def download_converted_gr(request):
 
 
 def determinize(request):
+    # tenta determinizar o af
     context = dict()
     try:
-        uploaded_file = request.FILES['afFile']
+        file_content = request.POST['file_content']
     except:
-        context.update({'error1': 'Você não selecionou um arquivo.'})
+        context.update({'error1': 'Não há nada para minimizar.',
+                        'form': InputForm()})
     if 'error1' not in context.keys():
-        # Check size of file, only open if its not too big
-        if not uploaded_file.multiple_chunks():
-            file_content = str(uploaded_file.read(), 'utf-8')
-        else:
-            print('File too big')
-
+        filename = settings.MEDIA_ROOT + '/af_file'
         try:
             af = read_af_string(file_content)
             af.determinize()
-            af.write_to_file(FILENAME_AF)
+            file_content = af.string_in_file_format()
+            with open(filename, 'w') as fout:
+                print(file_content, file=fout)
+                context.update({'file_content': file_content,
+                                'is_afnd': af.is_afnd,
+                                'afnodes': dumps(af.get_states_as_vis_nodes()),
+                                'afedges': dumps(af.get_transitions_as_vis_edges()),
+                                'tried_recognize': False,
+                                })
         except Exception as e:
-            context.update({'error1': e})
-    else:
-        if 'file_content' in request.POST.keys():
-            af_string = request.POST['file_content']
-            try:
-                af = read_af_string(af_string)
-                af.determinize()
-                af.write_to_file(FILENAME_AF)
-            except Exception as e:
-                context.update({'error2': e})
-                context.update({'file_content': af_string})
-
-    response = HttpResponse(open(FILENAME_AF, 'rb').read())
-    response['Content-Type'] = 'text/plain'
-    response['Content-Disposition'] = 'attachment; filename=af_determinized.jff'
-    return response
+            context.update({'error1': e,
+                            'form': InputForm(), })
+    return render(request, 'af.html', context)
 
 
 def minimize(request):
+    # tenta minimizar o af
     context = dict()
     try:
-        uploaded_file = request.FILES['afFile']
+        file_content = request.POST['file_content']
     except:
-        context.update({'error1': 'Você não selecionou um arquivo.'})
+        context.update({'error1': 'Não há nada para minimizar.',
+                        'form': InputForm()})
     if 'error1' not in context.keys():
-        # Check size of file, only open if its not too big
-        if not uploaded_file.multiple_chunks():
-            file_content = str(uploaded_file.read(), 'utf-8')
-        else:
-            print('File too big')
-
+        filename = settings.MEDIA_ROOT + '/af_file'
         try:
             af = read_af_string(file_content)
             af.minimize_af()
-            af.write_to_file(FILENAME_AF)
+            file_content = af.string_in_file_format()
+            with open(filename, 'w') as fout:
+                print(file_content, file=fout)
+                context.update({'file_content': file_content,
+                                'is_afnd': af.is_afnd,
+                                'afnodes': dumps(af.get_states_as_vis_nodes()),
+                                'afedges': dumps(af.get_transitions_as_vis_edges()),
+                                'tried_recognize': False,
+                                })
         except Exception as e:
-            context.update({'error1': e})
-    else:
-        if 'file_content' in request.POST.keys():
-            af_string = request.POST['file_content']
-            try:
-                af = read_af_string(af_string)
-                af.minimize_af()
-                af.write_to_file(FILENAME_AF)
-            except Exception as e:
-                context.update({'error2': e})
-                context.update({'file_content': af_string})
-
-    response = HttpResponse(open(FILENAME_AF, 'rb').read())
-    response['Content-Type'] = 'text/plain'
-    response['Content-Disposition'] = 'attachment; filename=af_minimized.jff'
-    return response
+            context.update({'error1': e,
+                            'form': InputForm(), })
+    return render(request, 'af.html', context)
 
 
 def recognize(request):
@@ -260,10 +244,6 @@ def recognize(request):
             af_string = request.POST['file_content']
             try:
                 af = read_af_string(af_string)
-
-                converted_gr = convert_to_gr(af)
-                converted_gr.write_to_file(FILENAME_GR)
-
                 recognized = af.recognize(recognize_content)
 
                 # obtém os dados necessários para gerar os grafos aqui
@@ -303,12 +283,11 @@ def af_union(request, inter=False):
 
         try:
             af2 = read_af_string(file_content)
+            af1 = read_af_string(request.POST.get('file_content'))
+            af_final = union_afs(af1, af2, inter)
         except Exception as e:
             context.update({'error1': e})
 
-    af1 = read_af_string(request.POST.get('file_content'))
-
-    af_final = union_afs(af1, af2, inter)
 
     try:
         # obtém os dados necessários para gerar os grafos aqui

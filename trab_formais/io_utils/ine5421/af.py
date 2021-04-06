@@ -55,6 +55,19 @@ class AF:
             Remove classes de equivalência do AF utilizando o método de Hopcroft
         minimize_af()
             Método central que chama os demais métodos para a completa minimização do AFD
+        set_alphabet()
+            Método que utiliza o alfabeto passado como parametro para alterar manualmente o alfabeto do AF
+        set_n_states()
+            Método que utiliza o numero passado como parametro para alterar manualmente o numero de estados do AF
+        set_states()
+            Método que utiliza a lista de estados passada como parametro para alterar manualmente a lista de estados do AF
+        set_start_states()
+            Método que utiliza o estado passado como parametro para alterar manualmente o estados inicial do AF
+        set_accept_states()
+            Método que utiliza a lista de estados de aceitação passada como parametro para alterar manualmente a lista de
+             estados de aceitação do AF
+        set_transitions()
+            Método que utiliza o dicionário passado como parametro para alterar manualmente a tabela de transições do AF
         """
     ERRO_1 = "O número de estados deve ser inteiro e maior que 0.(linha 1)"
     ERRO_2 = "Não há estado inicial.(linha 2)"
@@ -153,22 +166,46 @@ class AF:
         self.n_states = len(self.states)
 
     def set_alphabet(self, alphabet):
+        """
+        :param alphabet: list
+            Lista de strings que representam o alfabeto do AF
+        """
         self.alphabet = alphabet
 
     def set_transistions(self, transitions):
+        """
+        :param transitions: dicionário
+           Dicionário no padrão adotado para representar as linhas da tabela de transições do AF
+        """
         self.transition_table = transitions
         self.states = list(self.transition_table.keys())
 
     def set_final_states(self, final_states):
+        """
+        :param final_states: list
+           Lista de string com os nomes dos estados de aceitação do AF
+        """
         self.accept_states = final_states
     
     def set_start_state(self, start_state):
+        """
+        :param start_state: string
+           String do nome do estado inicial do AF
+        """
         self.start_state = start_state
 
     def set_n_states(self, n_states):
+        """
+        :param n_states: int
+           Inteiro que representa o número de estados do AF
+        """
         self.n_states = n_states
     
     def set_is_afnd(self, is_afnd):
+        """
+        :param is_afnd: bool
+            Bool que diz se o AF é ou n um AFND
+        """
         self.is_afnd = is_afnd
 
     def __str__(self):
