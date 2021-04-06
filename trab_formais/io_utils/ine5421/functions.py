@@ -29,7 +29,8 @@ def read_lines_af(lines):
 
 def read_gr_file(filename):
     with open(filename, "r") as file:
-        lines = file.readline().split(os.linesep)
+        lines = file.readline()
+        lines = lines.split(os.linesep)
         meta_data, productions = read_gr_lines(lines)
     return GR(meta_data, productions)
 
@@ -41,25 +42,32 @@ def read_gr_string(string):
 
 
 def read_gr_lines(lines):
+    print("bl")
     try:
-        meta_data = []
-        productions = []
-        i = 0
-        while len(meta_data) < 3:
-            line = lines[i].replace(" ", "").replace("/r", "").strip()
-            i += 1
-            if line != "":
-                meta_data.append(line)
-
-        while i < len(lines):
-            line = lines[i].replace(" ", "").replace("/r", "").strip()
-            print(line)
-            i += 1
-            if line != "":
-                productions.append(line)
+        meta_data = [lines[x].replace(" ", "").replace("/r", "").strip() for x in range(3)]
+        transitions = [lines[x].replace(" ", "").replace("/r", "").strip() for x in range(3, len(lines))]
     except:
         raise Exception(ERROR + "GR.")
-    return meta_data, productions
+    return meta_data, transitions
+    # try:
+    #     meta_data = []
+    #     productions = []
+    #     i = 0
+    #     while len(meta_data) < 3:
+    #         line = lines[i].replace(" ", "").replace("/r", "").strip()
+    #         i += 1
+    #         if line != "":
+    #             meta_data.append(line)
+    #
+    #     while i < len(lines):
+    #         line = lines[i].replace(" ", "").replace("/r", "").strip()
+    #         print(line)
+    #         i += 1
+    #         if line != "":
+    #             productions.append(line)
+    # except:
+    #     raise Exception(ERROR + "GR.")
+    # return meta_data, productions
 
 
 def convert_to_gr(af):

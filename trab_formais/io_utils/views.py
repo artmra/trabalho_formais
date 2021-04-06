@@ -35,6 +35,7 @@ def finite_automata(request):
 
 
 def update_or_upload_af(request):
+    # dependendo de quais opções foram escolhidas no site, chaveia para o método que irá tratá-las de maneira correta
     if request.POST['option'] == 'Ler arquivo':
         return upload_af_file(request)
     elif request.POST['option'] == 'Atualizar AF':
@@ -46,7 +47,7 @@ def update_or_upload_af(request):
 
 
 def update_af_file(request):
-    # TODO:impedir que as linhas vazias sejam excluídas
+    # tenta atualizar o af; se não houver nada, não atualiza, retorna um erro e tenta mostrar o ultimo AF salvo
     context = dict()
     try:
         file_content = request.POST['file_content']
@@ -60,6 +61,7 @@ def update_af_file(request):
             with open(filename, 'w') as fout:
                 print(file_content, file=fout)
                 context.update({'file_content': file_content,
+                                'is_afnd': af.is_afnd,
                                 'afnodes': dumps(af.get_states_as_vis_nodes()),
                                 'afedges': dumps(af.get_transitions_as_vis_edges()),
                                 'tried_recognize': False,
@@ -71,6 +73,7 @@ def update_af_file(request):
 
 
 def upload_af_file(request):
+    # tenta construir um af com base no conteúdo do af upado. se não houver tenta mostrar o último af construído
     context = dict()
     try:
         uploaded_file = request.FILES['afFile']
@@ -90,11 +93,7 @@ def upload_af_file(request):
         try:
             # lê o af do arquivo
             af = read_af_string(file_content)
-            converted_gr = convert_to_gr(af)
-            converted_gr.write_to_file(FILENAME_GR)
-
-            context.update({'is_afnd': af.is_afnd,
-                            'afnodes': dumps(af.get_states_as_vis_nodes()),
+            context.update({'afnodes': dumps(af.get_states_as_vis_nodes()),
                             'afedges': dumps(af.get_transitions_as_vis_edges()),
                             'tried_recognize': False,
                             })
@@ -110,10 +109,6 @@ def upload_af_file(request):
             af_string = request.POST['file_content']
             try:
                 af = read_af_string(af_string)
-
-                converted_gr = convert_to_gr(af)
-                converted_gr.write_to_file(FILENAME_GR)
-
                 # obtém os dados necessários para gerar os grafos aqui
                 context.update({'is_afnd': af.is_afnd,
                                 'file_content': af_string,
@@ -122,16 +117,15 @@ def upload_af_file(request):
                                 })
             except Exception as e:
                 context.update({'error2': e})
-                context.update({'file_content': af_string})
+                context.update({'file_content': af_string,
+                                'form': InputForm()})
         else:
-            context.update({'is_afnd': af.is_afnd,
-                            'form': InputForm()
-                            })
+            print("here 2")
+            context.update({'form': InputForm()})
     return render(request, 'af.html', context)
 
 
 def download_af_file(request):
-    # TODO: talvez checar se a estrutura é válida antes de permitir o download
     response = HttpResponse(open(FILENAME_AF, 'rb').read())
     response['Content-Type'] = 'text/plain'
     response['Content-Disposition'] = 'attachment; filename=AF.jff'
@@ -139,10 +133,26 @@ def download_af_file(request):
 
 
 def download_converted_gr(request):
-    response = HttpResponse(open(FILENAME_GR, 'rb').read())
-    response['Content-Type'] = 'text/plain'
-    response['Content-Disposition'] = 'attachment; filename=af_to_gr.jff'
-    return response
+    context = dict()
+    if 'file_content' in request.POST.keys():
+        af_string = request.POST['file_content']
+        try:
+            af = read_af_string(af_string)
+            converted_gr = convert_to_gr(af)
+            converted_gr.write_to_file(FILENAME_GR)
+            response = HttpResponse(open(FILENAME_GR, 'rb').read())
+            response['Content-Type'] = 'text/plain'
+            response['Content-Disposition'] = 'attachment; filename=af_to_gr.jff'
+            return response
+        except Exception as e:
+            context.update({'error1': e,
+                            'file_content': af_string,
+                            'form': InputForm()})
+    else:
+        context.update({'error1': "Primeiro realize o upload de um arquivo, ou escreva o AF no campo abaixo.",
+                        'form': InputForm()})
+    return render(request, 'af.html', context)
+
 
 
 def determinize(request):
@@ -332,9 +342,8 @@ def update_or_upload_gr(request):
 
 
 def update_gr_file(request):
-    # TODO:impedir que as linhas vazias sejam excluídas
     context = dict()
-    form = GrammarForm()
+    form = InputForm()
     try:
         file_content = request.POST['content']
         if file_content == "":
@@ -358,9 +367,8 @@ def update_gr_file(request):
 
 
 def upload_gr_file(request):
-    # TODO:impedir que as linhas vazias sejam excluídas
     context = dict()
-    form = GrammarForm()
+    form = InputForm()
     try:
         uploaded_file = request.FILES['grFile']
     except:
@@ -377,10 +385,7 @@ def upload_gr_file(request):
         output_file.close()
 
         try:
-            gr = read_gr_file(FILENAME_GR)
-            converted_af = convert_to_af(gr)
-            converted_af.write_to_file(FILENAME_AF)
-
+            gr = read_gr_string(file_content)
         except Exception as e:
             context.update({'error1': e})
 
@@ -392,10 +397,6 @@ def upload_gr_file(request):
             gr_string = request.POST['content']
             try:
                 gr = read_gr_string(gr_string)
-
-                converted_af = convert_to_af()
-                converted_af.write_to_file(FILENAME_AF)
-
                 customize_gr_form(form, gr, gr_string)
                 context.update({'form': form})
             except Exception as e:
@@ -420,7 +421,6 @@ def customize_gr_form(form, gr, file_content):
 
 
 def download_gr_file(request):
-    # TODO: talvez checar se a estrutura é válida antes de permitir o download
     response = HttpResponse(open(FILENAME_GR, 'rb').read())
     response['Content-Type'] = 'text/plain'
     response['Content-Disposition'] = 'attachment; filename=GR.jff'
@@ -428,10 +428,26 @@ def download_gr_file(request):
 
 
 def download_converted_af(request):
-    response = HttpResponse(open(FILENAME_AF, 'rb').read())
-    response['Content-Type'] = 'text/plain'
-    response['Content-Disposition'] = 'attachment; filename=gr_to_af.jff'
-    return response
+    context = dict()
+    if 'content' in request.POST.keys():
+        gr_string = request.POST['content']
+        try:
+            gr = read_gr_string(gr_string)
+            converted_af = convert_to_af(gr)
+            converted_af.write_to_file(FILENAME_AF)
+            response = HttpResponse(open(FILENAME_AF, 'rb').read())
+            response['Content-Type'] = 'text/plain'
+            response['Content-Disposition'] = 'attachment; filename=gr_to_af.jff'
+            return response
+        except Exception as e:
+            form = InputForm()
+            customize_gr_form(form, gr, gr_string)
+            context.update({'error1': e,
+                            'form': form})
+    else:
+        context.update({'error1': "Primeiro realize o upload de um arquivo, ou escreva a GR no campo abaixo.",
+                        'form': GrammarForm()})
+    return render(request, 'gr.html', context)
 
 
 #######################################################################################################################
@@ -455,8 +471,6 @@ def update_or_upload_er(request):
 
 
 def update_er_file(request):
-    # TODO: impedir que as linhas vazias sejam excluídas
-    # TODO: implementar detecção de erros no processo de atualização;
     try:
         file_content = request.POST['file_content']
     except:
@@ -474,8 +488,6 @@ def update_er_file(request):
 
 
 def upload_er_file(request):
-    # TODO: impedir que as linhas vazias sejam excluídas
-    # TODO: criar estrutura para manipulação de ER; implementar detecção de erros no processo de leitura;
     try:
         uploaded_file = request.FILES['erFile']
     except:
@@ -508,7 +520,6 @@ def regex(request):
 
 
 def download_er_file(request):
-    # TODO: talvez checar se a estrutura é válida antes de permitir o download
     response = HttpResponse(open(FILENAME_ER, 'rb').read())
     response['Content-Type'] = 'text/plain'
     response['Content-Disposition'] = 'attachment; filename=ER.jff'
