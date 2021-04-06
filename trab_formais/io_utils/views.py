@@ -527,7 +527,8 @@ def download_er_file(request):
 
 def convertER_to_af(request):
     file_content = request.POST['file_content']
-    er = read_er(file_content)
+    print(file_content.split(":")[1].strip())
+    er = read_er(file_content.split(":")[1].strip())
     converted_af = er.convert_to_af()
 
     converted_af.write_to_file(FILENAME_AF)
