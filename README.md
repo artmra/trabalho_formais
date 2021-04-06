@@ -16,7 +16,8 @@ deactivate
 ```
 
 ## Rodar localmente
-Ative o virtual env
+Verifique se a pasta ```media``` está localizada dentro de ```trab_formais/```; caso não, crie uma; em seguida ative o 
+virtual env
 ```
 source venv/bin/activate
 ```

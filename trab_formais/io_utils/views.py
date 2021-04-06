@@ -5,15 +5,15 @@ from django.shortcuts import render
 from django.conf import settings
 
 from .forms import InputForm, GrammarForm
-from .models.functions import read_gr_file, read_af_string, read_gr_string, convert_to_gr, convert_to_af, union_afs
 from json import dumps
 
 import os
 
+from .ine5421.functions import read_af_string, convert_to_gr, union_afs, read_gr_string, read_gr_file, convert_to_af
+
 FILENAME_AF = settings.MEDIA_ROOT + os.path.sep + 'af_file'
 FILENAME_ER = settings.MEDIA_ROOT + os.path.sep + 'er_file'
 FILENAME_GR = settings.MEDIA_ROOT + os.path.sep + 'gr_file'
-
 
 
 def index(request):
@@ -66,27 +66,21 @@ def update_af_file(request):
                                 })
         except Exception as e:
             context.update({'error1': e,
-                            'form': InputForm(),})
+                            'form': InputForm(), })
     return render(request, 'af.html', context)
 
 
 def upload_af_file(request):
-    # TODO:impedir que as linhas vazias sejam excluídas
     context = dict()
-    print('entrou em upload')
     try:
-        print('try 1')
         uploaded_file = request.FILES['afFile']
     except:
-        print('erro 1')
         context.update({'error1': 'Você não selecionou um arquivo.'})
     if 'error1' not in context.keys():
-        print('continuando 1')
         # writing file for temp use
         output_file = open(FILENAME_AF, 'w')
         # Check size of file, only open if its not too big
         if not uploaded_file.multiple_chunks():
-            print('if not multiple chunks')
             file_content = str(uploaded_file.read(), 'utf-8')
             output_file.write(file_content)
         else:
@@ -94,6 +88,7 @@ def upload_af_file(request):
         output_file.close()
 
         try:
+            # lê o af do arquivo
             af = read_af_string(file_content)
             converted_gr = convert_to_gr(af)
             converted_gr.write_to_file(FILENAME_GR)
@@ -116,7 +111,7 @@ def upload_af_file(request):
             try:
                 af = read_af_string(af_string)
 
-                converted_gr = af.convert_to_gr()
+                converted_gr = convert_to_gr(af)
                 converted_gr.write_to_file(FILENAME_GR)
 
                 # obtém os dados necessários para gerar os grafos aqui
@@ -142,11 +137,13 @@ def download_af_file(request):
     response['Content-Disposition'] = 'attachment; filename=AF.jff'
     return response
 
+
 def download_converted_gr(request):
     response = HttpResponse(open(FILENAME_GR, 'rb').read())
     response['Content-Type'] = 'text/plain'
     response['Content-Disposition'] = 'attachment; filename=af_to_gr.jff'
     return response
+
 
 def determinize(request):
     context = dict()
@@ -183,6 +180,7 @@ def determinize(request):
     response['Content-Disposition'] = 'attachment; filename=af_determinized.jff'
     return response
 
+
 def minimize(request):
     context = dict()
     try:
@@ -218,8 +216,8 @@ def minimize(request):
     response['Content-Disposition'] = 'attachment; filename=af_minimized.jff'
     return response
 
-def recognize(request):
 
+def recognize(request):
     context = dict()
     try:
         file_content = request.POST['file_content']
@@ -253,7 +251,7 @@ def recognize(request):
             try:
                 af = read_af_string(af_string)
 
-                converted_gr = af.convert_to_gr()
+                converted_gr = convert_to_gr(af)
                 converted_gr.write_to_file(FILENAME_GR)
 
                 recognized = af.recognize(recognize_content)
@@ -312,6 +310,7 @@ def af_union(request, inter=False):
         context.update({'error2': e})
         context.update({'file_content': af_final.string_in_file_format()})
     return render(request, 'af.html', context)
+
 
 #######################################################################################################################
 #                                                    GR endpoints                                                     #
@@ -379,7 +378,6 @@ def upload_gr_file(request):
 
         try:
             gr = read_gr_file(FILENAME_GR)
-
             converted_af = convert_to_af(gr)
             converted_af.write_to_file(FILENAME_AF)
 
@@ -395,7 +393,7 @@ def upload_gr_file(request):
             try:
                 gr = read_gr_string(gr_string)
 
-                converted_af = gr.convert_to_af()
+                converted_af = convert_to_af()
                 converted_af.write_to_file(FILENAME_AF)
 
                 customize_gr_form(form, gr, gr_string)
@@ -427,6 +425,7 @@ def download_gr_file(request):
     response['Content-Type'] = 'text/plain'
     response['Content-Disposition'] = 'attachment; filename=GR.jff'
     return response
+
 
 def download_converted_af(request):
     response = HttpResponse(open(FILENAME_AF, 'rb').read())

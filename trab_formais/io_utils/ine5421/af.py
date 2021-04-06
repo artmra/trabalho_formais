@@ -118,6 +118,9 @@ class AF:
             self.transition_table.update({state: dict()})
         # adiciona as transições definidas a partir da linha 5 a tabela de transições
         for transition in transitions:
+            # ignora linhas vazias
+            if transition == '':
+                continue
             try:
                 origin_state, symbol, reachable_states = [str(t) for t in transition.split(",")]
             except:

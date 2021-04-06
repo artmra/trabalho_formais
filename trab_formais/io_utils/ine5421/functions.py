@@ -1,29 +1,27 @@
-# from trab_formais.io_utils.models.af import AF
-# from trab_formais.io_utils.models.gr import GR
-
-import af
-import gr
+from .af import AF
+from .gr import GR
+import os
 
 ERROR = "Número insuficiente de linhas para definir um "
 
 
 def read_af_file(filename):
     with open(filename, "r") as file:
-        lines = file.readlines()
+        lines = file.readline().split(os.linesep)
         meta_data, transitions = read_lines_af(lines)
     return AF(meta_data, transitions)
 
 
 def read_af_string(string):
-    lines = string.splitlines()
+    lines = string.split(os.linesep)
     meta_data, transitions = read_lines_af(lines)
     return AF(meta_data, transitions)
 
 
 def read_lines_af(lines):
     try:
-        meta_data = [lines[x].replace(" ", "").strip() for x in range(4)]
-        transitions = [lines[x].replace(" ", "").strip() for x in range(4, len(lines))]
+        meta_data = [lines[x].replace(" ", "").replace("/r", "").strip() for x in range(4)]
+        transitions = [lines[x].replace(" ", "").replace("/r", "").strip() for x in range(4, len(lines))]
     except:
         raise Exception(ERROR + "AF.")
     return meta_data, transitions
@@ -31,13 +29,13 @@ def read_lines_af(lines):
 
 def read_gr_file(filename):
     with open(filename, "r") as file:
-        lines = file.readlines()
+        lines = file.readline().split(os.linesep)
         meta_data, productions = read_gr_lines(lines)
     return GR(meta_data, productions)
 
 
 def read_gr_string(string):
-    lines = string.splitlines()
+    lines = string.split(os.linesep)
     meta_data, productions = read_gr_lines(lines)
     return GR(meta_data, productions)
 
@@ -48,13 +46,13 @@ def read_gr_lines(lines):
         productions = []
         i = 0
         while len(meta_data) < 3:
-            line = lines[i].replace(" ", "").strip()
+            line = lines[i].replace(" ", "").replace("/r", "").strip()
             i += 1
             if line != "":
                 meta_data.append(line)
 
         while i < len(lines):
-            line = lines[i].replace(" ", "").strip()
+            line = lines[i].replace(" ", "").replace("/r", "").strip()
             print(line)
             i += 1
             if line != "":
@@ -123,6 +121,7 @@ def convert_to_af(gr):
 
     meta = [len(estados), estado_inicial, estados_aceitacao, alfabeto]
     return AF(meta, trans)
+
 
 def union_afs(af1, af2, inter):
     n_states = af1.n_states * af2.n_states
