@@ -22,21 +22,19 @@ class ER:
         """
         :raise: ERRO_1 em caso de organização incorreta nos parêntesis
         """
-        while True:
-            stack = []
+        stack = []
 
-            for c in self.expression:
-                if c == "(":
-                    stack.append(c)
-                elif c == ")":
-                    if not stack:
-                        stack.append(c)
-                        continue
-                    else:
-                        stack.pop()
+        for c in self.expression:
+            if c == "(":
+                stack.append(c)
+            elif c == ")":
+                if not stack:
+                    raise Exception(self.ERRO_1)
+                else:
+                    stack.pop()
 
-            if stack:
-                raise Exception(self.ERRO_1)
+        if stack:
+            raise Exception(self.ERRO_1)
 
     def is_symbols_ok(self):
         """
