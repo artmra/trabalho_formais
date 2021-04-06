@@ -149,6 +149,25 @@ class AF:
         # atualiza o número de estados. Não reclama se for diferente.
         self.n_states = len(self.states)
 
+    def set_alphabet(self, alphabet):
+        self.alphabet = alphabet
+
+    def set_transistions(self, transitions):
+        self.transition_table = transitions
+        self.states = list(self.transition_table.keys())
+
+    def set_final_states(self, final_states):
+        self.accept_states = final_states
+    
+    def set_start_state(self, start_state):
+        self.start_state = start_state
+
+    def set_n_states(self, n_states):
+        self.n_states = n_states
+    
+    def set_is_afnd(self, is_afnd):
+        self.is_afnd = is_afnd
+
     def __str__(self):
         """
         :return: str com a representação dos dados do objeto; NÃO segue o padrão dos arquivos '.jff'.

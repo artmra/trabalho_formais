@@ -1,8 +1,8 @@
 # from trab_formais.io_utils.models.af import AF
 # from trab_formais.io_utils.models.gr import GR
 
-from .af import AF
-from .gr import GR
+import af
+import gr
 
 ERROR = "Número insuficiente de linhas para definir um "
 

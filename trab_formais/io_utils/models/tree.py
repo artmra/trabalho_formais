@@ -1,7 +1,30 @@
+from functions import read_af_string
 from af import AF as automato
 
 
 class Node:
+    """
+        Classe usada para representar Arvore de Aho
+
+        Attributes
+        ----------
+        data: str
+            Valor do nodo
+        left: Node
+            Filho esquerdo
+        right: Node
+            Filho direito
+        firstpos: list
+            lista de firstpos do node
+        lastpos: list
+            lista de lastpos do node
+        nullable: bool
+            boolean se o nodo é nullable ou não
+
+        Methods
+        -------
+
+    """
     def __init__(self, data=None, left=None, right=None):
         self.data = data
 
@@ -15,6 +38,46 @@ class Node:
 
 
 class Tree:
+    """
+        Classe usada para representar Arvore de Aho
+
+        Attributes
+        ----------
+        alphabet: set
+            set do alfabeto de entrada
+        root: Node
+            node raiz da arvore
+        followpos_table: dict
+            tabela de followpos dos nodos
+        tree_list: list
+            lista com nodos folhas com os alfabetos
+
+        Methods
+        -------
+        make_tree(regex):
+            Descrição
+        split_tree(list=elements):
+            Descrição 
+        search_incomplete_nodes(Node=node, bool=tree_unfinished)
+            Descrição
+        split_elements(regex):
+            Descrição
+        get_internal_regex(regex):
+            descrição
+        set_leaf_nodes_values(Node=node, int=pos)
+            descrição
+        generate_first_last_pos(Node=node)
+            descrição
+        generate_followpos(Node=node)
+            descrição
+        optimize(Node=node)
+            descrição
+        post_order(Node=node)
+            Coloca a arvore em post order no atributo tree_list
+        create_af_from_tree(Node=node)
+            Metodo que cria o AFD a partir dos followpos ja criados
+
+    """
     def __init__(self, alphabet):
         self.alphabet = alphabet
         self.root = None
@@ -40,7 +103,6 @@ class Tree:
         for i in range(len(self.followpos_table)):
             self.followpos_table[i + 1] = set(self.followpos_table[i + 1])
 
-        self.order(self.root)
         self.post_order(self.root)
 
         return self.create_af_from_tree(self.root)
@@ -78,17 +140,16 @@ class Tree:
             if (i + aux) == len(regex):
                 break
             c = regex[i + aux]
-            if c in self.alphabet or c in '#|':
+            if c in self.alphabet or c in '#|&':
                 elements_list.append(c)
             if c == '*':
-                if len(elements_list[i - 2]) > 1 and len(elements_list) > 1:
-                    elements_list[i - 2] = f'({elements_list[i - 2]})*'
+                if len(elements_list[i - 1]) > 1 and len(elements_list) > 1:
+                    elements_list[i - 1] = f'({elements_list[i - 1]})*'
                 else:
                     elements_list.append('*')
             elif c == '(':
-                elements_list.append(self.get_internal_regex(regex[i + 1:]))
-                aux += len(elements_list[i])
-
+                elements_list.append(self.get_internal_regex(regex[i + aux + 1:]))
+                aux += len(elements_list[-1]) + 1
         return elements_list
 
     @staticmethod
@@ -129,12 +190,15 @@ class Tree:
         if node.right is not None:
             self.generate_first_last_pos(node.right)
 
-        if node.data == '|':
+        if node.data == '&':
+            node.nullable = True
+
+        elif node.data == '|':
             node.nullable = node.left.nullable or node.right.nullable
             node.firstpos = node.left.firstpos + node.right.firstpos
             node.lastpos = node.left.lastpos + node.right.lastpos
 
-        if node.data == '.':
+        elif node.data == '.':
             if node.left is None:
                 node.nullable = node.right.nullable
                 node.firstpos = node.right.firstpos
@@ -155,7 +219,7 @@ class Tree:
                 else:
                     node.lastpos = node.right.lastpos
 
-        if node.data == '*':
+        elif node.data == '*':
             node.nullable = True
             node.firstpos = node.right.firstpos
             node.lastpos = node.right.lastpos
@@ -182,21 +246,26 @@ class Tree:
                 else:
                     self.followpos_table[i] += node.firstpos
 
-    def order(self, node):
-        if node is None:
-            return
-
-        self.order(node.left)
-        self.order(node.right)
+    # def order(self, node):
+    #     if node is None:
+    #         return
+    #
+    #     self.order(node.left)
+    #     self.order(node.right)
+    #     print(node.data)
 
     def optimize(self, node):
         if node is None:
             return
+
         if node.data == '|':
             if node.left.data == '.':
                 node.left = node.left.right
             if node.right.data == '.':
                 node.right = node.right.right
+
+        elif node.data == '.' and node.left is None:
+            node = node.right
 
         node.left = self.optimize(node.left)
         node.right = self.optimize(node.right)
@@ -204,6 +273,9 @@ class Tree:
         return node
 
     def post_order(self, node):
+        """
+        :return:
+        """
         if node:
             self.post_order(node.left)
             self.post_order(node.right)
@@ -211,9 +283,16 @@ class Tree:
                 self.tree_list.append(node.data)
 
     def create_af_from_tree(self, node):
+        """
+        :param node: Node
+            node raiz para inicializacao do metodo
+        :return: string
+            retorna o AF ja inicializado com os atributos necessarios
+        """
         start_state = frozenset(node.firstpos)
         states = list()
-        n_states = 0
+        n_states = 1
+
         final_states = list()
         states_to_visit = [start_state]
 
@@ -224,26 +303,36 @@ class Tree:
             string_origin_state = automato.get_name(string_origin_state)
             transitions[string_origin_state] = {}
 
+            # Se estado possui a posiçaõ do elemento # então é um estado de aceitação
+            # é somado mais um por causa do index começando por 0
+            if (self.tree_list.index('#') + 1) in origin_state:
+                    final_states.append(origin_state)
+
             for symbol in self.alphabet:
+                # Ignora transição por epsilon
+                if symbol == '&':
+                    continue
+                # Agrupa estados que possuem transição pelo mesmo simbolo
                 same_transition = list()
                 for state in origin_state:
-                    # if (state-1) < len(self.tree_list):
-                    if self.tree_list[state - 1] == symbol:
+                    # print(state)
+                    if self.tree_list[state-1] == symbol:
                         same_transition.append(state)
+                # print(same_transition)
+
+                # Se não possui transição pelo simbolo, sai do loop
+                if not same_transition:
+                    continue
 
                 new_state = frozenset()
                 for pos in same_transition:
                     new_state |= (self.followpos_table.get(pos))
-                # Se estado possui a posiçaõ do elemento # então é um estado de aceitação
-                # é somado mais um por causa do index começando por 0
-                if (self.tree_list.index('#') + 1) in new_state:
-                    final_states.append(new_state)
                 # Se é um estado novo, adiciona a lista de estados
                 if new_state not in states:
                     n_states += 1
                     states_to_visit.append(new_state)
                     states.append(new_state)
-
+                # Formatando para string o novo estado
                 string_new_state = [str(i) for i in new_state]
                 string_new_state = automato.get_name(string_new_state)
                 transitions[string_origin_state][symbol] = [string_new_state]
@@ -257,8 +346,9 @@ class Tree:
         for final_state in final_states:
             final_state_name = [str(i) for i in final_state]
             final_state_name = automato.get_name(final_state_name)
-            list_final_states.append(final_state_name)
-
+            if final_state_name not in list_final_states:
+                list_final_states.append(final_state_name)
+        # Seta os atributos do AFD
         af = automato(None, None)
         af.set_alphabet(self.alphabet)
         af.set_transistions(transitions)
