@@ -94,9 +94,11 @@ class ER:
         :return: AF
             AFD equivalente a esse ER.
         """
-        import tree
+
+        # import tree
+        from .tree import Tree
         # cria uma árvore e realiza a conversão do ER para AFD
-        t = tree.Tree(self.alphabet)
+        t = Tree(self.alphabet)
         af = t.make_tree(self.expression)
         # automato pronto
         return af

@@ -22,6 +22,7 @@ urlpatterns = [
     path('er/upload_er_file', views.upload_er_file, name='upload_er'),
     path('er/download_er_file', views.download_er_file, name='download_er'),
     path('er/update_er_file/', views.update_er_file, name='update_er'),
+    path('er/convertER_to_af/', views.convertER_to_af, name='convertER_to_af'),
 
     path('gr', views.regular_grammar),
     path('gr/update_or_upload', views.update_or_upload_gr, name='options_gr'),

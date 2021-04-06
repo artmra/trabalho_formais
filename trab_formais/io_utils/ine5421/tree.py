@@ -1,4 +1,4 @@
-from af import AF as automato
+from .af import AF as automato
 
 
 class Node:

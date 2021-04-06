@@ -217,7 +217,7 @@ class AF:
     def get_states_as_vis_nodes(self):
         """
         :return: list
-            lista de dicionários contendo os dados necessários para criar nodes no viz.
+            lista de dicionários contendo os dados necessários para criar nodes no vis.
         """
         nodes = list()
 
@@ -227,12 +227,12 @@ class AF:
             state_label = state
 
             if state == self.start_state:
-                state_label = '->' + state
+                state_label = '->' + state_label
                 color_options = {'border': '#F25D00',
                                  'background': '#EEB679'}
 
             if state in self.accept_states:
-                state_label = '*' + state
+                state_label = state_label + '*'
                 color_options = {'border': '#008239',
                                  'background': '#91EDAC'}
 
@@ -266,13 +266,25 @@ class AF:
 
                     edges_control.append([init_state, state])
 
+                    self.states.index(state)
+
+                    # edges.append({
+                    #     'from': init_state,
+                    #     'to': state,
+                    #     'label': symbol,
+                    #     'smooth': {'type': 'curvedCCW', 'roundness': factor},
+                    #     'color': '#6b705c'
+                    # })
+
                     edges.append({
-                        'from': init_state,
-                        'to': state,
+                        'from': self.states.index(init_state),
+                        'to': self.states.index(state),
                         'label': symbol,
                         'smooth': {'type': 'curvedCCW', 'roundness': factor},
                         'color': '#6b705c'
                     })
+
+
         return edges
 
     def determinize(self):

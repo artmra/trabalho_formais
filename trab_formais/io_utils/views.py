@@ -9,7 +9,8 @@ from json import dumps
 
 import os
 
-from .ine5421.functions import read_af_string, convert_to_gr, union_afs, read_gr_string, read_gr_file, convert_to_af
+from .ine5421.functions import read_af_string, convert_to_gr, union_afs,\
+    read_gr_string, read_gr_file, convert_to_af, read_er
 
 FILENAME_AF = settings.MEDIA_ROOT + os.path.sep + 'af_file'
 FILENAME_ER = settings.MEDIA_ROOT + os.path.sep + 'er_file'
@@ -120,7 +121,6 @@ def upload_af_file(request):
                 context.update({'file_content': af_string,
                                 'form': InputForm()})
         else:
-            print("here 2")
             context.update({'form': InputForm()})
     return render(request, 'af.html', context)
 
@@ -524,3 +524,15 @@ def download_er_file(request):
     response['Content-Type'] = 'text/plain'
     response['Content-Disposition'] = 'attachment; filename=ER.jff'
     return response
+
+def convertER_to_af(request):
+    file_content = request.POST['file_content']
+    er = read_er(file_content)
+    converted_af = er.convert_to_af()
+
+    converted_af.write_to_file(FILENAME_AF)
+    response = HttpResponse(open(FILENAME_AF, 'rb').read())
+    response['Content-Type'] = 'text/plain'
+    response['Content-Disposition'] = 'attachment; filename=gr_to_af.jff'
+    return response
+

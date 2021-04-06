@@ -1,5 +1,6 @@
 from .af import AF
 from .gr import GR
+from .er import ER
 import os
 
 ERROR = "Número insuficiente de linhas para definir um "
@@ -168,3 +169,6 @@ def union_afs(af1, af2, inter):
                 continue
     is_AFND = False
     return AF(None, None, n_states, start_state, accept_states, alphabet, transition_table, is_AFND, states)
+
+def read_er(expression):
+    return ER(expression)
