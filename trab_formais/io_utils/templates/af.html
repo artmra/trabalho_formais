@@ -21,9 +21,9 @@
     <button formaction="{% url 'recognize' %}"> Recognize </button>
     {% if tried_recognize %}
         {% if recognized %}
-            <img src="/media/green_check.png" alt="check" width="20" height="20">
+            <img src="/io_utils/templates/images/green_check.png" alt="check" width="20" height="20">
         {% else %}
-            <img src="/media/red_x.png" alt="check" width="20" height="20">
+            <img src="/io_utils/templates/images/red_x.png" alt="check" width="20" height="20">
         {% endif %}
     {% endif %}
 {% endblock recognize %}
