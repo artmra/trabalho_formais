@@ -1,4 +1,3 @@
-from functions import read_af_string
 from af import AF as automato
 
 
@@ -55,23 +54,33 @@ class Tree:
         Methods
         -------
         make_tree(regex):
-            Descrição
-        split_tree(list=elements):
-            Descrição 
-        search_incomplete_nodes(Node=node, bool=tree_unfinished)
-            Descrição
+            Responsavel por chamar todos os metodos que executarao o processo de obtencao e tratamento
+            da arvore para converter para AFD
         split_elements(regex):
-            Descrição
+            Separa a ER em elementos que inicialmente representam nodos terminais. As partes da ER que
+            se encontram dentro de parentesis sao tratados como nodos terminais na criacao inicial da
+            arvore. Posteriormente esses nodos compostos por sub-expressoes serao abertos para que a
+            arvore fique correta.
         get_internal_regex(regex):
-            descrição
-        set_leaf_nodes_values(Node=node, int=pos)
-            descrição
-        generate_first_last_pos(Node=node)
-            descrição
-        generate_followpos(Node=node)
-            descrição
+            Pega a expressao contida em um conjunto de parentesis para que seja tratada como um nodo
+            folha.
+        split_tree(list=elements):
+            Recebe uma lista com os elementos atuais criados pelo metodo split_elements. Cria uma arvore
+            de maneira recursiva considerando que todos os nodos folha sejam terminais.
+        search_incomplete_nodes(Node=node, bool=tree_unfinished)
+            Efetua uma varredura em toda a arvore a procura de nodos folha que sejam na verdade sub-expressoes,
+            para poder, entao, chamar novamente os metodos split_elements e split_tree para que seja criada
+            uma sub-arvore da sub-expressoa. Este metodo sera chamado enquanto houver nodos folha que representem
+            sub-expressoes
         optimize(Node=node)
-            descrição
+            Otimiza a arvore, removendo nodos desnecessarios que possam causar erro no calculo dos firstpos
+            e lastpos.
+        set_leaf_nodes_values(Node=node, int=pos)
+            Determina o valor que representara cada um dos nodos folha.
+        generate_first_last_pos(Node=node)
+            Gera o firstpos e lastpos de cada nodo da arvore.
+        generate_followpos(Node=node)
+            Obtem uma tabela de followpos para posterior conversao a AFD.
         post_order(Node=node)
             Coloca a arvore em post order no atributo tree_list
         create_af_from_tree(Node=node)
@@ -168,7 +177,6 @@ class Tree:
             internal_regex += c
 
     def set_leaf_nodes_values(self, node, pos):
-        """Método utilizado para settar o valor dos nodos folha, que representam os elementos do alfabeto da ER"""
         if node is None:
             return pos
 
@@ -245,14 +253,6 @@ class Tree:
                     self.followpos_table[i] = node.firstpos
                 else:
                     self.followpos_table[i] += node.firstpos
-
-    # def order(self, node):
-    #     if node is None:
-    #         return
-    #
-    #     self.order(node.left)
-    #     self.order(node.right)
-    #     print(node.data)
 
     def optimize(self, node):
         if node is None:
