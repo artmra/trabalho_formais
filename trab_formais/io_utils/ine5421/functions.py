@@ -167,8 +167,23 @@ def union_afs(af1, af2, inter):
                     transition_table.update({s: {symbol: [new_transition_p1 + new_transition_p2]}})
             except KeyError:
                 continue
-    is_AFND = False
-    return AF(None, None, n_states, start_state, accept_states, alphabet, transition_table, is_AFND, states)
+    return AF(None, None, n_states, start_state, accept_states, alphabet, transition_table, False, states)
+
 
 def read_er(expression):
     return ER(expression)
+
+
+def read_pseudocode(pseudocode):
+    tokens = dict();
+    # lines = read_er(file_content.split(":")[1].strip())
+    lines = pseudocode.split(os.linesep)
+    for er_definition in lines:
+        label, er = er_definition.split(';')
+        er = er.split(':')[1].strip()
+        # TODO: Cria er
+        # TODO: Converte para af
+        # TODO: Se preciso determiniza e minimiza o af
+    # TODO: Realiza a união dos afs
+    # TODO: Relaciona os estados de aceitação aos labels de alguma forma
+    # TODO: Retorna o af
