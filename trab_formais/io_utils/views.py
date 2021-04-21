@@ -16,7 +16,6 @@ FILENAME_AF = settings.MEDIA_ROOT + os.path.sep + 'af_file'
 FILENAME_ER = settings.MEDIA_ROOT + os.path.sep + 'er_file'
 FILENAME_GR = settings.MEDIA_ROOT + os.path.sep + 'gr_file'
 
-
 def index(request):
     template = loader.get_template('index.html')
     context = {}
@@ -266,6 +265,7 @@ def recognize(request):
 
 
 def af_union(request, inter=False):
+
     context = dict()
     try:
         uploaded_file = request.FILES['afFile']
@@ -299,6 +299,7 @@ def af_union(request, inter=False):
     except Exception as e:
         context.update({'error2': e})
         context.update({'file_content': af_final.string_in_file_format()})
+
     return render(request, 'af.html', context)
 
 
