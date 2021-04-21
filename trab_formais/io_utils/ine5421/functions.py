@@ -50,25 +50,6 @@ def read_gr_lines(lines):
     except:
         raise Exception(ERROR + "GR.")
     return meta_data, transitions
-    # try:
-    #     meta_data = []
-    #     productions = []
-    #     i = 0
-    #     while len(meta_data) < 3:
-    #         line = lines[i].replace(" ", "").replace("/r", "").strip()
-    #         i += 1
-    #         if line != "":
-    #             meta_data.append(line)
-    #
-    #     while i < len(lines):
-    #         line = lines[i].replace(" ", "").replace("/r", "").strip()
-    #         print(line)
-    #         i += 1
-    #         if line != "":
-    #             productions.append(line)
-    # except:
-    #     raise Exception(ERROR + "GR.")
-    # return meta_data, productions
 
 
 def convert_to_gr(af):
@@ -133,6 +114,19 @@ def convert_to_af(gr):
 
 
 def union_afs(af1, af2, inter):
+    """Modifica a área de texto para uma AF resultado da união ou interseção
+    da AF previamente contida pela área de texto e a AF recém selecionada em
+    arquivo.
+
+    Utiliza o algoritmo da Construção por Produto para união e interseção.
+
+    Parameters
+    ----------
+    request : HttpRequest
+        Requisição web feita pelo usuário através do navegador
+    inter : bool
+        Se `inter` for `True`, a interseção das AFs é feita ao invés da união
+    """
     n_states = af1.n_states * af2.n_states
     start_state = af1.start_state + '-' + af2.start_state
     states = []
