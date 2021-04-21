@@ -46,22 +46,13 @@
 					{% block download %}
 						<button formaction="{% url 'method' %}">Download</button>
 					{% endblock download %}
-					{% block convert %}
-						<button formaction="{% url 'method' %}">Convert to</button>
-					{% endblock convert %}
-					{% if is_afnd %}
-						{% block determinize %}
-							<button formaction="{% url 'method' %}">Determinize</button>
-						{% endblock determinize %}
-					{% endif %}
+                    {% block convert_af %}
+                        <button formaction="{% url 'convertER_to_af' %}">Convert to AF</button>
+                    {% endblock convert_af %}
 
 
 				</form>
 
-				<div class="af">
-					{% block visualize-infos %}
-					{% endblock visualize-infos %}
-				</div>
 			</div>
 		</div>
 

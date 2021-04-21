@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'baseAF.html' %}
 {% block title %}
 	AUTÔMATOS FINITOS
 {% endblock title %}
@@ -10,24 +10,56 @@
 {% endblock form1 %}
 {% block choose-file %}
 	<input type="file" name="afFile" id="afFile">
+    <input type="submit" value="União" name="option">
+    <input type="submit" value="Interseção" name="option">
 {% endblock choose-file %}
 {% block text-area %}
 	<textarea cols="40" rows="20" name="file_content" id="file_content">{{ file_content }}</textarea>
 {% endblock text-area %}
+{% block recognize %}
+    <input name="recognize_input" id="recognize_input" type="text" />
+    <button formaction="{% url 'recognize' %}"> Recognize </button>
+    {% if tried_recognize %}
+        {% if recognized %}
+            <img src="/io_utils/templates/images/green_check.png" alt="check" width="20" height="20">
+        {% else %}
+            <img src="/io_utils/templates/images/red_x.png" alt="check" width="20" height="20">
+        {% endif %}
+    {% endif %}
+{% endblock recognize %}
+{% block union %}
+    <button formaction="{% url 'download_af' %}">Download</button>
+{% endblock union %}
 {% block update-option %}
 	<input type="submit" value="Atualizar AF" name="option"/>
 {% endblock update-option %}
 {% block download %}
-		<form>
 		  <button formaction="{% url 'download_af' %}">Download</button>
-		</form>
 {% endblock download %}
+{% block convert %}
+		<button formaction="{% url 'convert_to_gr' %}">Convert to GR</button>
+{% endblock convert %}
+{% if is_afnd %}
+	{% block determinize %}
+		<button formaction="{% url 'determinize' %}">Determinize</button>
+	{% endblock determinize %}
+{% endif %}
+{% block minimize %}
+    <button formaction="{% url 'minimize' %}">Minimize</button>
+{% endblock minimize %}
+<!--<div>-->
+<!--{% if is_afnd %}-->
+<!--		é afnd-->
+<!--{% else %}-->
+<!--		nao é afnd-->
+<!--{% endif %}-->
+<!--</div>-->
 {% block visualize-infos %}
 		<div id="graph-area">
 			<script type="text/javascript">
 				var afnodes = JSON.parse("{{afnodes|escapejs}}");
 				var afedges = JSON.parse("{{afedges|escapejs}}");
-				console.log(data)
+
 				// create an array with nodes
 				var nodes = new vis.DataSet(afnodes);
 

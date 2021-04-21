@@ -16,7 +16,8 @@ deactivate
 ```
 
 ## Rodar localmente
-Ative o virtual env
+Verifique se a pasta ```media``` está localizada dentro de ```trab_formais/```; caso não, crie uma; em seguida ative o 
+virtual env
 ```
 source venv/bin/activate
 ```
@@ -68,3 +69,17 @@ A -> bA | a
 **Terceira Linha** : Terminais separados por vírgulas \
 **Demais Linhas** : Regras (Cabeça da produção separador por '->' e corpo da produção separador por '|') \
 Epsilon é representado como '&'
+
+
+### Reconhecimento Léxico de pseudo-códigos
+Por linha devem ser passados, separados por ';', um label para o token, e a sua estrutura em si, que pode ser
+uma ER;
+```
+label_token_1; Token_1
+label_token_2; Token_2
+label_token_3; Token_3
+.
+.
+.
+label_token_n; Token_n
+```

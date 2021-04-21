@@ -34,11 +34,18 @@
 					{% csrf_token %}
 					{% if file_content %}
 						{% block text-area %}textarea{% endblock text-area %}
+                        <div>
+                            {% block recognize %}
+                            {% endblock recognize %}
+                            {% block union %}
+                            {% endblock union %}
+                        </div>
 					{% else %}
 						{% block load_specific_form %}
 						{{ form }}
 						{% endblock load_specific_form %}
 					{% endif %}
+
 					<br>
 					{% block update-option %}
 						<input type="submit" value="Atualizar" name="option"/>
@@ -54,6 +61,9 @@
 							<button formaction="{% url 'method' %}">Determinize</button>
 						{% endblock determinize %}
 					{% endif %}
+                    {% block minimize %}
+                        <button formaction="{% url 'method' %}">Minimize</button>
+                    {% endblock minimize %}
 
 
 				</form>
