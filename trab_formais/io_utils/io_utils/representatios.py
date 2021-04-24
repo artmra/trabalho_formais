@@ -140,42 +140,42 @@ class GLC:
         :raise Exception:
             erro referente a falha no processo de leitura das informações da GR
         """
-        # verifica se há apenas um símbolo inicial
-        if str(meta_data[0]) == "" or len([str(nonTerminal) for nonTerminal in meta_data[0].split(",")]) > 1:
-            raise Exception(self.ERRO_1)
-        self.start_symbol = str(meta_data[0])
-        # verifica se há pelo menos um símbolo
-        self.non_terminals = [str(symbol) for symbol in meta_data[1].split(",")]
-        if self.start_symbol not in self.non_terminals:
-            raise Exception(self.ERRO_2_1 + self.start_symbol + self.ERRO_2_2)
-        # verifica se nenhum dos símbolos não terminais pertence ao conjunto de terminais
-        self.terminals = [str(symbol) for symbol in meta_data[2].split(",")]
-        for symbol in self.non_terminals:
-            if symbol in self.terminals:
-                raise Exception(self.ERRO_3_1 + symbol + self.ERRO_3_2)
-        # cria as produções
-        self.productions = dict()
-        for production in productions:
-            try:
-                head, body = [str(p) for p in production.split("->")]
-                if head == "":
-                    line = str(4 + productions.index(production))
-                    raise Exception(self.ERRO_5 + line + ")")
-                # TODO: checar se todas os símbolos fazem parte do conjunto de terminais ou não terminais
-            except:
-                line = str(4 + productions.index(production))
-                raise Exception(self.ERRO_4 + line + ")")
-            # TODO: implementar a detecção de encolhimento de sentença
-            body = [str(b) for b in body.split("|")]
-            if len(body) < 1 or body[0] == "":
-                line = str(4 + productions.index(production))
-                raise Exception(self.ERRO_6 + line + ")")
-            if head in self.productions.keys():
-                line = str(4 + productions.index(production))
-                raise Exception(self.ERRO_7 + line + ")")
-            # adiciona essa regra de produção ao dicionário de produções
-            self.productions.update({head: body})
-        self.production_heads = list(self.productions.keys())
+        # # verifica se há apenas um símbolo inicial
+        # if str(meta_data[0]) == "" or len([str(nonTerminal) for nonTerminal in meta_data[0].split(",")]) > 1:
+        #     raise Exception(self.ERRO_1)
+        # self.start_symbol = str(meta_data[0])
+        # # verifica se há pelo menos um símbolo
+        # self.non_terminals = [str(symbol) for symbol in meta_data[1].split(",")]
+        # if self.start_symbol not in self.non_terminals:
+        #     raise Exception(self.ERRO_2_1 + self.start_symbol + self.ERRO_2_2)
+        # # verifica se nenhum dos símbolos não terminais pertence ao conjunto de terminais
+        # self.terminals = [str(symbol) for symbol in meta_data[2].split(",")]
+        # for symbol in self.non_terminals:
+        #     if symbol in self.terminals:
+        #         raise Exception(self.ERRO_3_1 + symbol + self.ERRO_3_2)
+        # # cria as produções
+        # self.productions = dict()
+        # for production in productions:
+        #     try:
+        #         head, body = [str(p) for p in production.split("->")]
+        #         if head == "":
+        #             line = str(4 + productions.index(production))
+        #             raise Exception(self.ERRO_5 + line + ")")
+        #         # TODO: checar se todas os símbolos fazem parte do conjunto de terminais ou não terminais
+        #     except:
+        #         line = str(4 + productions.index(production))
+        #         raise Exception(self.ERRO_4 + line + ")")
+        #     # TODO: implementar a detecção de encolhimento de sentença
+        #     body = [str(b) for b in body.split("|")]
+        #     if len(body) < 1 or body[0] == "":
+        #         line = str(4 + productions.index(production))
+        #         raise Exception(self.ERRO_6 + line + ")")
+        #     if head in self.productions.keys():
+        #         line = str(4 + productions.index(production))
+        #         raise Exception(self.ERRO_7 + line + ")")
+        #     # adiciona essa regra de produção ao dicionário de produções
+        #     self.productions.update({head: body})
+        # self.production_heads = list(self.productions.keys())
 
     def __str__(self):
         """
@@ -219,27 +219,49 @@ class GLC:
         header = str()
         heads = list()
 
-        for line in grammar.readlines():
-            if '->' not in line:
-                continue
-            else:
-                head = line[0]
-                productions = line.split('->')[1].split('|').strip()
-                left_recursions = [p for p in productions if p[0] == head]
-                non_left_recursions = [p for p in productions if p[0] != head]
+        for line in grammar.splitlines():
+            if '->' in line:
+                symbol = line[0]
+                line = line.replace(' ', '')
+                productions = line.split('->')[1].split('|')
+                left_recursions = [p for p in productions if p[0] == symbol]
+                non_left_recursions = [p for p in productions if p[0] != symbol]
 
-                d = {"head": head,
+                d = {"symbol": symbol,
                      "productions": productions,
                      "left_recursions": left_recursions,
                      "non_left_recursions": non_left_recursions}
 
-                heads.append(d)
+            heads.append(d)
 
-        heads = self.eliminate_direct_recursion(heads)
-        heads = self.eliminate_indirect_recursions(heads)
+        heads = self.eliminate_direct_recursion(heads, grammar)
+        # heads = self.eliminate_indirect_recursions(heads)
+        return heads
 
     @staticmethod
-    def eliminate_direct_recursion(heads):
+    def eliminate_direct_recursion(heads, grammar):
+        for head in heads:
+            new_productions = list()
+            if head['left_recursions']:
+                # print([(nlr + f'{head["symbol"]}\'') for nlr in head['non_left_recursions']])
+
+                new_productions.append([(nlr + f'{head["symbol"]}\'') for nlr in head['non_left_recursions']])
+                new_productions.append([(lr[1:] + f'{head["symbol"]}\'') for lr in head['left_recursions']])
+                new_productions[1].append('&')
+
+                print(new_productions[0])
+                print(new_productions[1])
+
+                head['productions'] = new_productions[0]
+                head['left_recursions'] = list()
+                head['non_left_recursions'] = new_productions[0]
+
+                new_head = {"symbol": f'{head}\'',
+                            "productions": new_productions[1],
+                            "left_recursions": list(),
+                            "non_left_recursions": new_productions[1]}
+                heads.append(new_head)
+
         return heads
 
     @staticmethod
