@@ -212,16 +212,39 @@ class GLC:
                f"{productions}"
 
     def eliminate_left_recursion(self, grammar):
+        # https: // www.youtube.com / watch?v = dWmFd16GJEA
+
         resulting_grammar = str()
+
+        header = str()
+        heads = list()
 
         for line in grammar.readlines():
             if '->' not in line:
-                resulting_grammar += line
+                continue
             else:
-                symbol = line[0]
+                head = line[0]
                 productions = line.split('->')[1].split('|').strip()
-                terminal_productions = [p for p in productions if p.lower() == p]
-                non_terminal_productions = [p for p in productions if p.lower() != p]
+                left_recursions = [p for p in productions if p[0] == head]
+                non_left_recursions = [p for p in productions if p[0] != head]
+
+                d = {"head": head,
+                     "productions": productions,
+                     "left_recursions": left_recursions,
+                     "non_left_recursions": non_left_recursions}
+
+                heads.append(d)
+
+        heads = self.eliminate_direct_recursion(heads)
+        heads = self.eliminate_indirect_recursions(heads)
+
+    @staticmethod
+    def eliminate_direct_recursion(heads):
+        return heads
+
+    @staticmethod
+    def eliminate_indirect_recursions(heads):
+        return heads
 
 
 class AF:
