@@ -350,7 +350,7 @@ class Tree:
                 list_final_states.append(final_state_name)
         # Seta os atributos do AFD
         af = automato(None, None)
-        af.set_alphabet(self.alphabet)
+        af.set_alphabet(list(self.alphabet))
         af.set_transistions(transitions)
         af.set_final_states(list_final_states)
         af.set_start_state(start_state_name)

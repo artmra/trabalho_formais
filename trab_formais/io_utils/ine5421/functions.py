@@ -117,9 +117,7 @@ def union_afs(af1, af2, inter):
     """Modifica a área de texto para uma AF resultado da união ou interseção
     da AF previamente contida pela área de texto e a AF recém selecionada em
     arquivo.
-
     Utiliza o algoritmo da Construção por Produto para união e interseção.
-
     Parameters
     ----------
     request : HttpRequest
@@ -169,15 +167,38 @@ def read_er(expression):
 
 
 def read_pseudocode(pseudocode):
-    tokens = dict();
+    tokens = dict()
     # lines = read_er(file_content.split(":")[1].strip())
     lines = pseudocode.split(os.linesep)
+    tokens = dict()
+    first = lines[0].split(';')[0]
+    second = lines[1].split(';')[0]
     for er_definition in lines:
-        label, er = er_definition.split(';')
-        er = er.split(':')[1].strip()
-        # TODO: Cria er
-        # TODO: Converte para af
-        # TODO: Se preciso determiniza e minimiza o af
+        label, er_ = er_definition.split(';')
+        # Cria er
+        er = read_er(er_.split(":")[1].strip())
+        # Converte para af
+        af = er.convert_to_af()
+        # Se preciso minimiza o af(esse processo já o determiniza, caso necessário)
+        af.minimize_af()
+        tokens.update({label: af})
+
+    # realiza a união de todos os AFs
+    labels = list(tokens.keys())
+    final_af = tokens[labels.pop(0)]
+    for label in labels:
+        final_af.union_with(tokens[label])
+    # print(final_af.recognize('def'))
+    # print(final_af.recognize('name'))
+    # print(final_af.recognize('if'))
+    # print(final_af.recognize('else'))
+    # print(final_af.recognize('class'))
     # TODO: Realiza a união dos afs
     # TODO: Relaciona os estados de aceitação aos labels de alguma forma
     # TODO: Retorna o af
+
+def af_union(af1, af2):
+    # renomeia os estados nos dois AFs
+    #    renomear os estados, de forma que os nomes sejam unicos, garante que o processo de unir as duas tabelas de
+    #    transicoes seja apenas adicionar as transicoes do segundo af no primeiro
+    pass
