@@ -98,6 +98,7 @@ class AF:
             self.is_afnd = is_afnd
             self.states = states
             self.label_list = dict()
+            self.last_state = None
             return
 
         # lê o numero de estados
@@ -167,6 +168,8 @@ class AF:
         self.n_states = len(self.states)
         # labels para estados de aceitacao
         self.label_list = dict()
+        # last state
+        self.last_state = None
 
     def set_alphabet(self, alphabet):
         """
@@ -481,6 +484,7 @@ class AF:
                 return False
 
         # se o estado atual for um estado de aceitação, a palavra pertence à linguagem; se não a palavra não pertence
+        self.last_state = actual_state
         if actual_state in self.accept_states:
             return True
         return False
@@ -742,6 +746,12 @@ class AF:
         self.accept_states = [rename_function[s] for s in self.accept_states]
         # muda os estados
         self.states = list(self.transition_table.keys())
+        # muda os labels
+        if self.label_list:
+            n_label_list = dict()
+            for state, label in self.label_list.items():
+                n_label_list.update({rename_function[state]: label})
+            self.label_list = n_label_list
 
     def union_with(self, af):
         # renomeia os estados do próprio af
@@ -756,11 +766,24 @@ class AF:
         # atualiza os estados
         self.states = list(self.transition_table.keys())
         # adiciona os estados de aceitacao
-        self.accept_states = self.accept_states + af.accept_states
+        old_accept_states = self.accept_states + af.accept_states
+        old_labels = self.label_list
+        old_labels.update(af.label_list)
+        self.accept_states = old_accept_states
         # atualiza o alfabeto(deve ter &)
         self.alphabet.append('&')
         self.alphabet = list(set(self.alphabet + af.alphabet))
         # marca q é afnd
         self.is_afnd = True
         self.determinize()
+        # self.minimize_af()
+        # atualiza as referencias de labels
+        n_label_list = dict()
+        for state in self.accept_states:
+            labels = []
+            for s in old_accept_states:
+                if s in state:
+                    labels.extend(old_labels[s])
+            n_label_list.update({state: labels})
+        self.label_list = n_label_list
         self.rename_states(0)
