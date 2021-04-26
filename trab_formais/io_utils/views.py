@@ -5,10 +5,10 @@ from django.shortcuts import render
 from django.conf import settings
 
 from .forms import InputForm, GrammarForm
-from .io_utils.functions import read_gr_file, read_af_string, read_gr_string, read_glc_file
+from .io_utils.functions import read_gr_file, read_af_string, read_gr_string
 from json import dumps
 
-from .io_utils.representatios import AF
+from .io_utils.representatios import AF, GLC
 
 FILENAME_AF = settings.MEDIA_ROOT + '/af_file/wtf.txt'
 FILENAME_ER = settings.MEDIA_ROOT + '/er_file'
@@ -308,15 +308,15 @@ def customize_gr_form(form, gr, file_content):
             form.fields[x + y] = forms.CharField(label=False, required=False, initial=v)
 
 def elim_left_recursion(request):
+    glc = GLC(0,0)
     print('views - elim_left_recursion')
 
     output_file = open(FILENAME_GR, 'rb')
     file_content = str(output_file.read(), 'utf-8')
     output_file.close()
 
-    glc = read_glc_file(FILENAME_GR)
-
     # elimina recursao
+    print(file_content)
     non_recursive = glc.eliminate_left_recursion(file_content)
     print('non recursive:')
     print(non_recursive)

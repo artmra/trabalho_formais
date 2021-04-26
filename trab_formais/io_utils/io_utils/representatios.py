@@ -141,41 +141,41 @@ class GLC:
             erro referente a falha no processo de leitura das informações da GR
         """
         # verifica se há apenas um símbolo inicial
-        if str(meta_data[0]) == "" or len([str(nonTerminal) for nonTerminal in meta_data[0].split(",")]) > 1:
-            raise Exception(self.ERRO_1)
-        self.start_symbol = str(meta_data[0])
-        # verifica se há pelo menos um símbolo
-        self.non_terminals = [str(symbol) for symbol in meta_data[1].split(",")]
-        if self.start_symbol not in self.non_terminals:
-            raise Exception(self.ERRO_2_1 + self.start_symbol + self.ERRO_2_2)
-        # verifica se nenhum dos símbolos não terminais pertence ao conjunto de terminais
-        self.terminals = [str(symbol) for symbol in meta_data[2].split(",")]
-        for symbol in self.non_terminals:
-            if symbol in self.terminals:
-                raise Exception(self.ERRO_3_1 + symbol + self.ERRO_3_2)
-        # cria as produções
-        self.productions = dict()
-        for production in productions:
-            try:
-                head, body = [str(p) for p in production.split("->")]
-                if head == "":
-                    line = str(4 + productions.index(production))
-                    raise Exception(self.ERRO_5 + line + ")")
-                # TODO: checar se todas os símbolos fazem parte do conjunto de terminais ou não terminais
-            except:
-                line = str(4 + productions.index(production))
-                raise Exception(self.ERRO_4 + line + ")")
-            # TODO: implementar a detecção de encolhimento de sentença
-            body = [str(b) for b in body.split("|")]
-            if len(body) < 1 or body[0] == "":
-                line = str(4 + productions.index(production))
-                raise Exception(self.ERRO_6 + line + ")")
-            if head in self.productions.keys():
-                line = str(4 + productions.index(production))
-                raise Exception(self.ERRO_7 + line + ")")
-            # adiciona essa regra de produção ao dicionário de produções
-            self.productions.update({head: body})
-        self.production_heads = list(self.productions.keys())
+        # if str(meta_data[0]) == "" or len([str(nonTerminal) for nonTerminal in meta_data[0].split(",")]) > 1:
+        #     raise Exception(self.ERRO_1)
+        # self.start_symbol = str(meta_data[0])
+        # # verifica se há pelo menos um símbolo
+        # self.non_terminals = [str(symbol) for symbol in meta_data[1].split(",")]
+        # if self.start_symbol not in self.non_terminals:
+        #     raise Exception(self.ERRO_2_1 + self.start_symbol + self.ERRO_2_2)
+        # # verifica se nenhum dos símbolos não terminais pertence ao conjunto de terminais
+        # self.terminals = [str(symbol) for symbol in meta_data[2].split(",")]
+        # for symbol in self.non_terminals:
+        #     if symbol in self.terminals:
+        #         raise Exception(self.ERRO_3_1 + symbol + self.ERRO_3_2)
+        # # cria as produções
+        # self.productions = dict()
+        # for production in productions:
+        #     try:
+        #         head, body = [str(p) for p in production.split("->")]
+        #         if head == "":
+        #             line = str(4 + productions.index(production))
+        #             raise Exception(self.ERRO_5 + line + ")")
+        #         # TODO: checar se todas os símbolos fazem parte do conjunto de terminais ou não terminais
+        #     except:
+        #         line = str(4 + productions.index(production))
+        #         raise Exception(self.ERRO_4 + line + ")")
+        #     # TODO: implementar a detecção de encolhimento de sentença
+        #     body = [str(b) for b in body.split("|")]
+        #     if len(body) < 1 or body[0] == "":
+        #         line = str(4 + productions.index(production))
+        #         raise Exception(self.ERRO_6 + line + ")")
+        #     if head in self.productions.keys():
+        #         line = str(4 + productions.index(production))
+        #         raise Exception(self.ERRO_7 + line + ")")
+        #     # adiciona essa regra de produção ao dicionário de produções
+        #     self.productions.update({head: body})
+        # self.production_heads = list(self.productions.keys())
 
     def __str__(self):
         """
