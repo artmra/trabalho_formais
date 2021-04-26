@@ -166,10 +166,10 @@ def read_er(expression):
     return ER(expression)
 
 
-def read_pseudocode(pseudocode):
+def create_af_from_al(rules):
     tokens = dict()
     # lines = read_er(file_content.split(":")[1].strip())
-    lines = pseudocode.split(os.linesep)
+    lines = rules.split(os.linesep)
     tokens = dict()
     first = lines[0].split(';')[0]
     second = lines[1].split(';')[0]
@@ -189,8 +189,9 @@ def read_pseudocode(pseudocode):
     for label in labels:
         final_af.union_with(tokens[label])
     
-    # print(af.label_list)
     print(final_af.label_list)
+    print(labels)
+    # print(final_af.label_list[])
     
     return final_af
 

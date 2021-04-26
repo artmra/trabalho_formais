@@ -10,7 +10,7 @@ from json import dumps
 import os
 
 from .ine5421.functions import read_af_string, convert_to_gr, union_afs,\
-    read_gr_string, convert_to_af, read_er, read_pseudocode
+    read_gr_string, convert_to_af, read_er, create_af_from_al
 
 FILENAME_AF = settings.MEDIA_ROOT + os.path.sep + 'af_file'
 FILENAME_ER = settings.MEDIA_ROOT + os.path.sep + 'er_file'
@@ -575,7 +575,7 @@ def upload_al_file(request):
     output_file.close()
 
     # writing af that reconizes the al file
-    af = read_pseudocode(file_content)
+    af = create_af_from_al(file_content)
     output_file = open(FILENAME_AF_FROM_AL, 'w')
     output_file.write(af.string_in_file_format())
     output_file.close()
@@ -593,21 +593,34 @@ def download_al_file(request):
     return response
 
 def analyze_pseudocode(request):
+    # file_content = request.POST.get('file_content', None)
+    # af_from_al_content = request.POST['af_from_al_content']
+    # af_from_al_content = request.POST.get('af_from_al_content', None)
     try:
-        f = open(FILENAME_AF_FROM_AL, 'r')
-        af_from_al_content = str(FILENAME_AF_FROM_AL.read(), 'utf-8')
+        # Read file content from af file made from the al file
+        af_file = open(FILENAME_AF_FROM_AL, 'r')
+        af_from_al_content = af_file.read()
+
+        # # Read file content from al file
+        # al_file = open(FILENAME_AL, 'r')
+        # al_content = al_file.read()
+
+        file_content = request.POST['file_content']
         # af_from_al_content = request.POST['af_from_al_content']
     except:
         context = {'error1': 'Não é possivel analisar sem as regras definidas.',
-                   'form': InputForm(), }
+                   'form': InputForm(),
+                    }
         return render(request, 'al.html', context)
 
-    af = read_af_string(af_from_al_content)
 
+    af = read_af_string(af_from_al_content)
     labels = af.label_list
 
     context = {
         'lexic_analysis': labels,
+        'pseudocode': labels,
         'file_content': file_content,
+        'af_from_al_content': af_from_al_content,
     }
     return render(request, 'al.html', context)
