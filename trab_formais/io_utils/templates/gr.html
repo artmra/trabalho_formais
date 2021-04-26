@@ -45,6 +45,9 @@
 {% endblock update-option %}
 {% block download %}
 		<form>
-		  <button formaction="{% url 'download_gr' %}">Download</button>
+		    <button formaction="{% url 'download_gr' %}">Download</button>
+            <button formaction="{% url 'elim_left_recursion' %}">Eliminar Recursão</button>
 		</form>
+
+
 {% endblock download %}

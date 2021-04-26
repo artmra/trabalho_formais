@@ -212,6 +212,7 @@ class GLC:
                f"{productions}"
 
     def eliminate_left_recursion(self, grammar):
+        print('in eliminate_left_recursion on representations')
         heads = list()
         lines = grammar.splitlines()
         for line in lines:
@@ -238,8 +239,6 @@ class GLC:
         transitions = lines[2]
 
         grammar = f'{start_symbol}\n{heads_symbols}\n{transitions}\n{self.get_grammar_body(heads)}'
-
-        print(grammar)
 
         return grammar
 

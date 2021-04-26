@@ -1,4 +1,4 @@
-from .representatios import AF, GR
+from .representatios import AF, GR, GLC
 
 ERROR = "Número insuficiente de linhas para definir um "
 
@@ -31,6 +31,12 @@ def read_gr_file(filename):
         meta_data, productions = read_gr_lines(lines)
     return GR(meta_data, productions)
 
+def read_glc_file(filename):
+    with open(filename, "r") as file:
+        lines = file.readlines()
+        meta_data, productions = read_gr_lines(lines)
+    return GLC(meta_data, productions)
+
 
 def read_gr_string(string):
     lines = string.splitlines()
@@ -51,7 +57,7 @@ def read_gr_lines(lines):
 
         while i < len(lines):
             line = lines[i].replace(" ", "").strip()
-            print(line)
+            #print(line)
             i += 1
             if line != "":
                 productions.append(line)

@@ -24,4 +24,5 @@ urlpatterns = [
     path('gr/upload_gr_file', views.upload_gr_file, name='upload_gr'),
     path('gr/download_gr_file', views.download_gr_file, name='download_gr'),
     path('gr/update_gr_file/', views.update_gr_file, name='update_gr'),
+    path('gr/eliminate_left_recursion/', views.elim_left_recursion, name='elim_left_recursion'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

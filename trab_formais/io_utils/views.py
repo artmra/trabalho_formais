@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.conf import settings
 
 from .forms import InputForm, GrammarForm
-from .io_utils.functions import read_gr_file, read_af_string, read_gr_string
+from .io_utils.functions import read_gr_file, read_af_string, read_gr_string, read_glc_file
 from json import dumps
 
 from .io_utils.representatios import AF
@@ -307,6 +307,29 @@ def customize_gr_form(form, gr, file_content):
             y = str(int(y) + 1)
             form.fields[x + y] = forms.CharField(label=False, required=False, initial=v)
 
+def elim_left_recursion(request):
+    print('views - elim_left_recursion')
+
+    output_file = open(FILENAME_GR, 'rb')
+    file_content = str(output_file.read(), 'utf-8')
+    output_file.close()
+
+    glc = read_glc_file(FILENAME_GR)
+
+    # elimina recursao
+    non_recursive = glc.eliminate_left_recursion(file_content)
+    print('non recursive:')
+    print(non_recursive)
+    # escreve no arquivo auxiliar
+    output_file = open(FILENAME_GR, 'w')
+    output_file.write(non_recursive)
+    output_file.close()
+
+    #faz download do arquivo auxiliar
+    response = HttpResponse(open(FILENAME_GR, 'rb').read())
+    response['Content-Type'] = 'text/plain'
+    response['Content-Disposition'] = 'attachment; filename=GR.jff'
+    return response
 
 def download_gr_file(request):
     # TODO: talvez checar se a estrutura é válida antes de permitir o download
