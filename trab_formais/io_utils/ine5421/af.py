@@ -787,3 +787,17 @@ class AF:
             n_label_list.update({state: labels})
         self.label_list = n_label_list
         self.rename_states(0)
+    
+    def label_list_as_string(self):
+        label_list = ''
+        if not self.label_list:
+            return
+        for state, labels in self.label_list.items():
+            labels = ''
+            for l in labels:
+                if labels != '':
+                    labels = labels + ';' + l
+                else:
+                    labels = l
+            label_list = label_list + f'{state};{labels}\n'
+        return label_list

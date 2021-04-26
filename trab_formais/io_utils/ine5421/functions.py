@@ -165,15 +165,30 @@ def union_afs(af1, af2, inter):
 def read_er(expression):
     return ER(expression)
 
+def read_pseudocode(pseudocode, af):
+    words = pseudocode.split()
+
+    dic = dict()
+
+    for word in words:
+        if af.recognize(word):
+            dic[word] = af.label_list[af.last_state]
+        else:
+            dic[word] = "Não reconhecido"
+    # print(dic)
+
+    return dic
 
 def create_af_from_al(rules):
     tokens = dict()
     # lines = read_er(file_content.split(":")[1].strip())
     lines = rules.split(os.linesep)
     tokens = dict()
-    first = lines[0].split(';')[0]
-    second = lines[1].split(';')[0]
+    # first = lines[0].split(';')[0]
+    # second = lines[1].split(';')[0]
     for er_definition in lines:
+        if er_definition == '':
+            continue
         label, er_ = er_definition.split(';')
         # Cria er
         er = read_er(er_.split(":")[1].strip())
@@ -189,8 +204,8 @@ def create_af_from_al(rules):
     for label in labels:
         final_af.union_with(tokens[label])
     
-    print(final_af.label_list)
-    print(labels)
+    # print(final_af.label_list)
+    # print(final_af)
     # print(final_af.label_list[])
     
     return final_af
@@ -198,9 +213,6 @@ def create_af_from_al(rules):
     # print(labels)
     # print(final_af.recognize('def'))
     # print(final_af.recognize('name'))
-    # print(final_af.recognize('if'))
-    # print(final_af.recognize('else'))
-    # print(final_af.recognize('class'))
     # TODO: Realiza a união dos afs
     # TODO: Relaciona os estados de aceitação aos labels de alguma forma
     # TODO: Retorna o af
