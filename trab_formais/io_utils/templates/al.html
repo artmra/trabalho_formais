@@ -1,0 +1,22 @@
+{% extends 'baseLexic.html' %}
+{% block title %}
+	RECONHECIMENTO LÉXICO
+{% endblock title %}
+{% block header-text %}
+	Analisador Léxico
+{% endblock header-text %}
+{% block form1 %}
+	<form enctype="multipart/form-data" method="POST" action="{% url 'options_al' %}">
+{% endblock form1 %}
+{% block choose-file %}
+	<input type="file" name="alFile" id="alFile">
+{% endblock choose-file %}
+{% block text-area %}
+	<textarea cols="40" rows="20" name="file_content" id="file_content">{{ file_content }}</textarea>
+{% endblock text-area %}
+{% block update-option %}
+	<input type="submit" value="Atualizar AL" name="option"/>
+{% endblock update-option %}
+{% block download %}
+    <button formaction="{% url 'download_al' %}">Download</button>
+{% endblock download %}

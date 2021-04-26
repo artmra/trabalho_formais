@@ -188,7 +188,13 @@ def read_pseudocode(pseudocode):
     final_af = tokens[labels.pop(0)]
     for label in labels:
         final_af.union_with(tokens[label])
-    print('bk')
+    
+    # print(af.label_list)
+    print(final_af.label_list)
+    
+    return final_af
+
+    # print(labels)
     # print(final_af.recognize('def'))
     # print(final_af.recognize('name'))
     # print(final_af.recognize('if'))
