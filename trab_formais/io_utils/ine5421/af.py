@@ -793,11 +793,11 @@ class AF:
         if not self.label_list:
             return
         for state, labels in self.label_list.items():
-            labels = ''
+            _labels = ''
             for l in labels:
-                if labels != '':
-                    labels = labels + ';' + l
+                if _labels != '':
+                    _labels = _labels + ';' + l
                 else:
-                    labels = l
-            label_list = label_list + f'{state};{labels}\n'
+                    _labels = l
+            label_list = label_list + f'{state};{_labels}\n'
         return label_list

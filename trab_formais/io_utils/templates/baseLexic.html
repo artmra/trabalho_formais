@@ -65,10 +65,10 @@
                                     <th>Lexema</th>
                                 </tr>
                                 
-                                {% for label in lexic_analysis %}
+                                {% for token, lexema in lexic_analysis.items %}
                                 <tr>
-                                    <td>{{ label }}</td>
-                                    <td>{{ value }}</td>
+                                    <td>{{ token }}</td>
+                                    <td>{{ lexema }}</td>
                                 </tr>
                                 {% endfor %}
                             </table>

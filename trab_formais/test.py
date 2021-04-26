@@ -15,4 +15,6 @@ sample_pseudo_code = "def if class name while"
 #                      "function_name; er: name#\n" \
 #                      "class_definition; er: class#"
 
-read_pseudocode(sample_pseudo_code, af)
+result = read_pseudocode(sample_pseudo_code, af)
+
+print(result)

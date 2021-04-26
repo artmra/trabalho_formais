@@ -631,16 +631,10 @@ def download_al_file(request):
     return response
 
 def analyze_pseudocode(request):
-    if request.POST.get('pseudocode'):
-        pseudocode = "Hello"
     try:
         # Read file content from af file made from the al file
         af_file = open(FILENAME_AF_FROM_AL, 'r')
         af_from_al_content = af_file.read()
-
-        # Read labels from file
-        al_file = open(FILENAME_LABELS, 'r')
-        al_content = al_file.read()
 
         label_list_file = open(FILENAME_LABEL_LIST, 'r')
         label_list = dict()
@@ -653,8 +647,7 @@ def analyze_pseudocode(request):
         label_list_file.close()
 
         file_content = request.POST['file_content']
-        # if request.POST.get(pseudocode):
-        #     pseudocode = "Hello"
+        pseudocode = request.POST['pseudocode']
     except:
         context = {
             'error1': 'Não é possivel analisar sem as regras definidas.',
@@ -664,12 +657,13 @@ def analyze_pseudocode(request):
 
     af = read_af_string(af_from_al_content)
     af.set_label_list(label_list)
+    print(label_list)
 
-    # labels = af.label_list
-    print(pseudocode)
+    dic = read_pseudocode(pseudocode, af)
+    print(dic)
 
     context = {
-        'lexic_analysis': label_list,
+        'lexic_analysis': dic,
         'pseudocode': pseudocode,
         'file_content': file_content,
         'af_from_al_content': af_from_al_content,

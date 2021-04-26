@@ -172,7 +172,13 @@ def read_pseudocode(pseudocode, af):
 
     for word in words:
         if af.recognize(word):
-            dic[word] = af.label_list[af.last_state]
+            s = ''
+            for l in af.label_list[af.last_state]:
+                if s == '':
+                    s = l
+                else:
+                    s = s + " ou " + l
+            dic[word] = s
         else:
             dic[word] = "Não reconhecido"
     # print(dic)

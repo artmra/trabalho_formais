@@ -3,3 +3,4 @@ if_token; er: if#
 else_token; er: else#
 function_name; er: name#
 class_definition; er: class#
+var_type; er: int#
