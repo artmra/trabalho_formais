@@ -215,6 +215,11 @@ class GLC:
         print('in eliminate_left_recursion on representations')
         heads = list()
         lines = grammar.splitlines()
+        while ('' in lines):
+            lines.remove('')
+
+        print('lines')
+        print(lines)
         for line in lines:
             if '->' in line:
                 symbol = line[0]
