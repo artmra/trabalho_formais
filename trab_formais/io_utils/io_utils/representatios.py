@@ -235,11 +235,12 @@ class GLC:
         heads = self.eliminate_direct_recursion(heads)
 
         start_symbol = lines[0]
-        heads_symbols = ','.join([head['symbol'] for head in heads])
+        heads_symbols = [head['symbol'] for head in heads]
+        heads_symbols = set(heads_symbols)
+        heads_symbols = ','.join(heads_symbols)
         transitions = lines[2]
 
         grammar = f'{start_symbol}\n{heads_symbols}\n{transitions}\n{self.get_grammar_body(heads)}'
-
         return grammar
 
     @staticmethod
