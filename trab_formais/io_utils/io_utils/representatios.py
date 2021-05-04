@@ -118,6 +118,104 @@ class GR:
                f"{','.join(self.terminals)}\n" \
                f"{productions}"
 
+    def first(string, gr, productions_dict):
+        first_ = set()
+
+        if string in gr.non_terminals:
+            alternatives = productions_dict[string]
+
+            for alternative in alternatives:
+                first_2 = GR.first(alternative, gr, productions_dict)
+                first_ = first_ | first_2
+
+        elif string in gr.terminals:
+            first_ = {string}
+
+        elif string == '&':
+            first_ = {'&'}
+
+        else:
+            first_2 = GR.first(string[0], gr, productions_dict)
+            if '&' in first_2:
+                i = 1
+                while '&' in first_2:
+                    first_ = first_ | (first_2 - {'&'})
+                    if string[i:] in gr.terminals:
+                        first_ = first_ | {string[i:]}
+                        break
+                    elif string[i:] == '':
+                        first_ = first_ | {'&'}
+                        break
+                    first_2 = GR.first(string[i:], gr, productions_dict)
+                    first_ = first_ | first_2 - {'&'}
+                    i += 1
+            else:
+                first_ = first_ | first_2
+
+        return first_
+
+    def follow(nT, gr, productions_dict):
+        # print("inside follow({})".format(nT))
+        follow_ = set()
+        # print("FOLLOW", FOLLOW)
+        prods = productions_dict.items()
+        if nT == gr.start_symbol:
+            follow_ = follow_ | {'$'}
+        for nt, rhs in prods:
+            # print("nt to rhs", nt,rhs)
+            for alt in rhs:
+                for char in alt:
+                    if char == nT:
+                        following_str = alt[alt.index(char) + 1:]
+                        if following_str == '':
+                            if nt == nT:
+                                continue
+                            else:
+                                follow_ = follow_ | GR.follow(nt, gr, productions_dict)
+                        else:
+                            follow_2 = GR.first(following_str, gr, productions_dict)
+                            if '&' in follow_2:
+                                follow_ = follow_ | follow_2 - {'&'}
+                                follow_ = follow_ | GR.follow(nt, gr, productions_dict)
+                            else:
+                                follow_ = follow_ | follow_2
+        # print("returning for follow({})".format(nT),follow_)
+        return follow_
+
+    def get_firsts_follows(self):
+        terminals = self.terminals
+        non_terminals = self.non_terminals
+        starting_symbol = self.start_symbol
+
+        productions = self.productions
+
+        productions_dict = {}
+
+        for nT in non_terminals:
+            productions_dict[nT] = []
+
+        for p in productions:
+            for s in productions[p]:
+                productions_dict[p].append(s)
+
+        FIRST = {}
+        FOLLOW = {}
+
+        for non_terminal in non_terminals:
+            FIRST[non_terminal] = set()
+
+        for non_terminal in non_terminals:
+            FOLLOW[non_terminal] = set()
+
+        for non_terminal in non_terminals:
+            FIRST[non_terminal] = FIRST[non_terminal] | GR.first(non_terminal, self, productions_dict)
+
+        FOLLOW[starting_symbol] = FOLLOW[starting_symbol] | {'$'}
+        for non_terminal in non_terminals:
+            FOLLOW[non_terminal] = FOLLOW[non_terminal] | GR.follow(non_terminal, self, productions_dict)
+
+        return FIRST, FOLLOW
+
 
 class GLC:
     ERRO_1 = "Deve haver apenas um símbolo inicial.(linha 1)"

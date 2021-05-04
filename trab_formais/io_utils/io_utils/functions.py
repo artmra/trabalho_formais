@@ -1,4 +1,4 @@
-from .representatios import AF, GR, GLC
+from representatios import AF, GR, GLC
 
 ERROR = "Número insuficiente de linhas para definir um "
 
