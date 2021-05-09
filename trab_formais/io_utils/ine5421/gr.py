@@ -114,3 +114,100 @@ class GR:
                f"{','.join(self.non_terminals)}\n" \
                f"{','.join(self.terminals)}\n" \
                f"{productions}"
+
+    # trabalho do isac começa aqui
+
+    def eliminate_left_recursion(self, grammar):
+        print('in eliminate_left_recursion on representations')
+        heads = list()
+        lines = grammar.splitlines()
+        while ('' in lines):
+            lines.remove('')
+
+        print('lines')
+        print(lines)
+        for line in lines:
+            if '->' in line:
+                symbol = line[0]
+                line = line.replace(' ', '')
+                productions = line.split('->')[1].split('|')
+                left_recursions = [p for p in productions if p[0] == symbol]
+                non_left_recursions = [p for p in productions if p[0] != symbol]
+
+                d = {"symbol": symbol,
+                     "productions": productions,
+                     "left_recursions": left_recursions,
+                     "non_left_recursions": non_left_recursions}
+
+                heads.append(d)
+
+        heads = self.eliminate_direct_recursion(heads)
+        heads = self.eliminate_indirect_recursions(heads)
+        heads = self.eliminate_direct_recursion(heads)
+
+        start_symbol = lines[0]
+        heads_symbols = [head['symbol'] for head in heads]
+        heads_symbols = set(heads_symbols)
+        heads_symbols = ','.join(heads_symbols)
+        transitions = lines[2]
+
+        grammar = f'{start_symbol}\n{heads_symbols}\n{transitions}\n{self.get_grammar_body(heads)}'
+        return grammar
+
+    @staticmethod
+    def get_grammar_body(heads):
+        grammar_body = str()
+        for h in heads:
+            grammar_body += f'{h["symbol"]} -> '
+            p = ' | '.join([p for p in h['productions']])
+            grammar_body += f'{p}\n'
+        return grammar_body
+
+    @staticmethod
+    def eliminate_direct_recursion(heads):
+        for head in heads:
+            new_productions = list()
+            if head['left_recursions']:
+                new_productions.append([(nlr + f'{head["symbol"]}\'') for nlr in head['non_left_recursions']])
+                new_productions.append([(lr[1:] + f'{head["symbol"]}\'') for lr in head['left_recursions']])
+                new_productions[1].append('&')
+
+                head['productions'] = new_productions[0]
+                head['left_recursions'] = list()
+                head['non_left_recursions'] = new_productions[0]
+
+                new_head = {"symbol": f'{head["symbol"]}\'',
+                            "productions": new_productions[1],
+                            "left_recursions": list(),
+                            "non_left_recursions": new_productions[1]}
+                heads.append(new_head)
+
+        return heads
+
+    @staticmethod
+    def eliminate_indirect_recursions(heads):
+        for head in heads:
+            for production in head['productions']:
+                p = production[0]
+                if p.upper() == p and p.upper() != head['symbol']:
+                    for head2 in heads:
+                        if head2['symbol'] == p:
+                            for production2 in head2['productions']:
+                                p2 = production2[0]
+                                if p2 == head['symbol']:
+                                    for phead in head['productions']:
+                                        head2['productions'].append(phead + production2[1:])
+                                    head2['productions'].remove(production2)
+                                    break
+
+        for head in heads:
+            head['left_recursions'] = list()
+            head['non_left_recursions'] = list()
+            for production in head['productions']:
+                if production[0] == head['symbol']:
+                    head['left_recursions'].append(production)
+                else:
+                    head['non_left_recursions'].append(production)
+
+        return heads
+
