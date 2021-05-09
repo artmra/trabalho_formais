@@ -1,3 +1,5 @@
+from .tree import Tree
+
 class ER:
     """
     Classe usada para representar uma Expressão Regular
@@ -94,9 +96,6 @@ class ER:
         :return: AF
             AFD equivalente a esse ER.
         """
-
-        # import tree
-        from .tree import Tree
         # cria uma árvore e realiza a conversão do ER para AFD
         t = Tree(self.alphabet)
         af = t.make_tree(self.expression)

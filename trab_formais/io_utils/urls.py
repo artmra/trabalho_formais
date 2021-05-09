@@ -30,4 +30,12 @@ urlpatterns = [
     path('gr/download_gr_file', views.download_gr_file, name='download_gr'),
     path('gr/update_gr_file/', views.update_gr_file, name='update_gr'),
     path('gr/convert_to_af/', views.download_converted_af, name='convert_to_af'),
+
+    path('al', views.lexic_recognition),
+    path('al/update_or_upload', views.update_or_upload_al, name='options_al'),
+    path('al/upload_al_file', views.upload_al_file, name='upload_al'),
+    path('al/download_al_file', views.download_al_file, name='download_al'),
+    path('al/update_al_file/', views.update_al_file, name='update_al'),
+    path('al/analyze_pseudocode/', views.analyze_pseudocode, name='analyze_pseudocode'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

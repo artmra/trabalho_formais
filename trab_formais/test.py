@@ -1,17 +1,20 @@
-from trab_formais.io_utils.models.functions import read_af_file
+from io_utils.ine5421.functions import create_af_from_al, read_pseudocode
 
-BASE_ADDRESS = 'trab_formais/test-files'
-af1 = 'D:/Users/bryan/Desktop/Formais/Trabalho 1/trabalho_formais/trab_formais/test-files/minimizacao/teste3-minimizacao.jff'
-# af1 = read_af_file('/home/evaristo/Faculdade/ling_formais/trabalho_formais/trab_formais/test-files/minimizacao/teste4-minimizacao.jff')
-# af2 = read_af_file('/home/evaristo/Faculdade/ling_formais/trabalho_formais/trab_formais/test-files/minimizacao/teste4-minimizacao.jff')
-af2 = 'D:/Users/bryan/Desktop/Formais/Trabalho 1/trabalho_formais/trab_formais/test-files/minimizacao/teste3-minimizacao.jff'
-# D:\Users\bryan\Desktop\Formais\Trabalho 1\trabalho_formais\trab_formais\test-files\minimizacao
-# "D:\Users\bryan\Desktop\Formais\Trabalho 1\trabalho_formais\trab_formais\test.py"
-af1 = read_af_file(af1)
-print("resultado antes da minimizacao\n")
-print(af1)
-af1.minimize_af()
+rules =  "function_definition; er: def#\n" \
+                     "if_token; er: if#\n" \
+                     "else_token; er: else#\n" \
+                     "function_name; er: name#\n" \
+                     "class_definition; er: class#"
 
+af = create_af_from_al(rules)
 
-print("\n\nresultado dps da minimizaçaõ:\n")
-print(af1)
+sample_pseudo_code = "def if class name while"
+# sample_pseudo_code = "function_definition; er: def#\n" \
+#                      "if_token; er: if#\n" \
+#                      "else_token; er: else#\n" \
+#                      "function_name; er: name#\n" \
+#                      "class_definition; er: class#"
+
+result = read_pseudocode(sample_pseudo_code, af)
+
+print(result)

@@ -75,11 +75,11 @@ Epsilon é representado como '&'
 Por linha devem ser passados, separados por ';', um label para o token, e a sua estrutura em si, que pode ser
 uma ER;
 ```
-label_token_1; Token_1
-label_token_2; Token_2
-label_token_3; Token_3
+label_token_1; re: Token_1#
+label_token_2; re: Token_2#
+label_token_3; re: Token_3#
 .
 .
 .
-label_token_n; Token_n
+label_token_n; re: Token_n#
 ```

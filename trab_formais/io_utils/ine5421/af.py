@@ -97,6 +97,8 @@ class AF:
             self.transition_table = transition_table
             self.is_afnd = is_afnd
             self.states = states
+            self.label_list = dict()
+            self.last_state = None
             return
 
         # lê o numero de estados
@@ -164,6 +166,10 @@ class AF:
         self.states = list(self.transition_table.keys())
         # atualiza o número de estados. Não reclama se for diferente.
         self.n_states = len(self.states)
+        # labels para estados de aceitacao
+        self.label_list = dict()
+        # last state
+        self.last_state = None
 
     def set_alphabet(self, alphabet):
         """
@@ -329,17 +335,17 @@ class AF:
         :return:
         """
         if not self.is_afnd:
-            pass
+            return
         if '&' in self.alphabet:
             self.determinize_with_epsilon()
         else:
             self.determinize_without_epsilon()
+        self.is_afnd = False
 
     def determinize_with_epsilon(self):
         """
         :return:
         """
-        print('determinizando com epsilon')
         # calcula o epsilon fecho
         epsilon_set = self.calculate_epsilon_set()
         states_to_define = [epsilon_set[self.start_state]]
@@ -362,7 +368,6 @@ class AF:
         """
         :return:
         """
-        print('determinizando sem epsilon')
         states_to_define = []
         # primeiro percorre para obter novos estados e os adiciona em states_to_define
         for transitions in self.transition_table.values():
@@ -479,6 +484,7 @@ class AF:
                 return False
 
         # se o estado atual for um estado de aceitação, a palavra pertence à linguagem; se não a palavra não pertence
+        self.last_state = actual_state
         if actual_state in self.accept_states:
             return True
         return False
@@ -549,6 +555,7 @@ class AF:
         :return:
         """
         live_states = set()
+        live_states.update(self.accept_states)
         states_to_visit = list()
         # Marca estados com transições para os estados finais
         for state in self.states:
@@ -688,7 +695,6 @@ class AF:
         """
         :return:
         """
-        print(self.__str__())
         # determiniza o AFD para o funcionamento do hopcroft
         self.determinize()
         # Remove unreachble states
@@ -697,4 +703,101 @@ class AF:
         self.remove_dead_states()
         # Remove equivalent states and recreate AFD
         self.remove_equivalent()
-        print(self.__str__())
+
+    def set_label_list(self, label_list):
+        # Verifica se o dict contem label apenas para estados de aceitação; caso sim, substitui o dict atual pelo
+        # dict passado como parametro
+        for state in label_list.keys():
+            if state not in self.accept_states:
+                return
+        self.label_list = label_list
+
+    def set_accept_state_label(self, state, label):
+        # Se o estado for um estado de aceitação, cria ou atualiza um label para o mesmo
+        if state in self.accept_states:
+            self.label_list.update({state: label})
+
+    def remove_accept_state_label(self, state):
+        # Caso o estado seja um estado de aceitação, remove o label associado à ele
+        if state in self.accept_states and state in self.label_list.keys():
+            self.label_list.pop(state)
+
+    def rename_states(self, begin):
+        rename_function = dict()
+        # define função de rename dos estados
+        for state in self.states:
+            rename_function.update({state: f'estado_{str(begin)}'})
+            begin += 1
+
+        new_transition_table = dict()
+
+        for origin, transitions in self.transition_table.items():
+            new_transitions = dict()
+            for symbol, destinations in transitions.items():
+                new_destinations = [rename_function[d] for d in destinations]
+                new_transitions.update({symbol: new_destinations})
+            new_transition_table.update({rename_function[origin]: new_transitions})
+
+        # mudar tabela de transicao
+        self.transition_table = new_transition_table
+        # muda o estado inicial
+        self.start_state = rename_function[self.start_state]
+        # muda os estados de aceitacao
+        self.accept_states = [rename_function[s] for s in self.accept_states]
+        # muda os estados
+        self.states = list(self.transition_table.keys())
+        # muda os labels
+        if self.label_list:
+            n_label_list = dict()
+            for state, label in self.label_list.items():
+                n_label_list.update({rename_function[state]: label})
+            self.label_list = n_label_list
+
+    def union_with(self, af):
+        # renomeia os estados do próprio af
+        self.rename_states(1)
+        # renomeia os estados do af que será adicionado ao af atual
+        af.rename_states(self.n_states + 1)
+        # mudar tabela de transicao
+        self.transition_table.update(af.transition_table)
+        # adiciona e altera o novo estado inicial
+        self.transition_table.update({f'estado_{str(0)}': {'&': [self.start_state, af.start_state]}})
+        self.start_state = f'estado_{str(0)}'
+        # atualiza os estados
+        self.states = list(self.transition_table.keys())
+        # adiciona os estados de aceitacao
+        old_accept_states = self.accept_states + af.accept_states
+        old_labels = self.label_list
+        old_labels.update(af.label_list)
+        self.accept_states = old_accept_states
+        # atualiza o alfabeto(deve ter &)
+        self.alphabet.append('&')
+        self.alphabet = list(set(self.alphabet + af.alphabet))
+        # marca q é afnd
+        self.is_afnd = True
+        self.determinize()
+        # self.minimize_af()
+        # atualiza as referencias de labels
+        n_label_list = dict()
+        for state in self.accept_states:
+            labels = []
+            for s in old_accept_states:
+                if s in state:
+                    labels.extend(old_labels[s])
+            n_label_list.update({state: labels})
+        self.label_list = n_label_list
+        self.rename_states(0)
+    
+    def label_list_as_string(self):
+        label_list = ''
+        if not self.label_list:
+            return
+        for state, labels in self.label_list.items():
+            _labels = ''
+            for l in labels:
+                if _labels != '':
+                    _labels = _labels + ';' + l
+                else:
+                    _labels = l
+            label_list = label_list + f'{state};{_labels}\n'
+        return label_list

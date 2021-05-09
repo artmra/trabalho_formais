@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+{% extends 'index.html' %}
+{% load static %}
+<html>
+
+
+<body>
+	{% block body %}
+	<!-- Page content -->
+	<div class="main">
+		<div class="header">
+			<p>{% block title %} TIPO {% endblock title %}</p>
+		</div>
+
+		<div class="card" style="width: 100%">
+			<div class="card-header">
+				<span style="text-align: left">{% block header-text %}Leitura de Tipo{% endblock header-text %}</span>
+			</div>
+			<div class="card-body">
+				{% block form1 %}
+				<form enctype="multipart/form-data" method="POST" action="{% url 'upload_method' %}">
+				{% endblock form1 %}
+					{% csrf_token %}
+					{% block choose-file %}<input type="file" name="file-type" id="file-type">{% endblock choose-file %}
+					<!--	esse bloco, tal como o de atualização, pode ser desnecessário					-->
+					{% block read-button %}
+						<input type="submit" value="Ler arquivo" name="option">
+					{% endblock read-button %}
+					{% if error1 %}
+						<li class="error">{{ error1 }}</li>
+					{% endif %}
+					{% if error2 %}
+						<li class="error">{{ error2 }}</li>
+					{% endif %}
+					<br>
+					{% csrf_token %}
+					{% if file_content %}
+						{% block text-area %}textarea{% endblock text-area %}
+					{% else %}
+						{% block load_specific_form %}
+						{{ form }}
+						{% endblock load_specific_form %}
+					{% endif %}
+					<br>
+                    {% block update-option %}
+                    <input type="submit" value="Atualizar" name="option"/>
+                    {% endblock update-option %}
+					{% block download %}
+                    <button formaction="{% url 'method' %}">Download</button>
+					{% endblock download %}
+                    <br>
+                    <hr>
+                    <div class="row">
+                        <div class="column">
+                            <h6>Pseudocódigo</h6>
+                            <br>
+                            <textarea cols="60" rows="15" name="pseudocode" id="pseudocode">{{ pseudocode }}</textarea>
+                            <br>
+                            <button formaction="{% url 'analyze_pseudocode' %}">Analisar</button>
+                        </div>
+                        <div class="column">
+                            <table>
+                                <tr>
+                                    <th>Tokens</th>
+                                    <th>Lexema</th>
+                                </tr>
+                                
+                                {% for token, lexema in lexic_analysis.items %}
+                                <tr>
+                                    <td>{{ token }}</td>
+                                    <td>{{ lexema }}</td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+                    </div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	{% endblock body%}
+
+</body>
+
+</html>

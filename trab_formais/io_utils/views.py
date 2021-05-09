@@ -10,11 +10,14 @@ from json import dumps
 import os
 
 from .ine5421.functions import read_af_string, convert_to_gr, union_afs,\
-    read_gr_string, read_gr_file, convert_to_af, read_er
+    read_gr_string, convert_to_af, read_er, create_af_from_al, read_pseudocode
 
 FILENAME_AF = settings.MEDIA_ROOT + os.path.sep + 'af_file'
 FILENAME_ER = settings.MEDIA_ROOT + os.path.sep + 'er_file'
 FILENAME_GR = settings.MEDIA_ROOT + os.path.sep + 'gr_file'
+FILENAME_AL = settings.MEDIA_ROOT + os.path.sep + 'al_file'
+FILENAME_AF_FROM_AL = settings.MEDIA_ROOT + os.path.sep + 'af_from_al_file'
+FILENAME_LABEL_LIST = settings.MEDIA_ROOT + os.path.sep + 'label_list'
 
 def index(request):
     template = loader.get_template('index.html')
@@ -265,7 +268,6 @@ def recognize(request):
 
 
 def af_union(request, inter=False):
-
     context = dict()
     try:
         uploaded_file = request.FILES['afFile']
@@ -299,7 +301,6 @@ def af_union(request, inter=False):
     except Exception as e:
         context.update({'error2': e})
         context.update({'file_content': af_final.string_in_file_format()})
-
     return render(request, 'af.html', context)
 
 
@@ -518,3 +519,153 @@ def convertER_to_af(request):
     response['Content-Disposition'] = 'attachment; filename=gr_to_af.jff'
     return response
 
+#######################################################################################################################
+#                                      Lexical Analysis endpoints                                                     #
+#######################################################################################################################
+
+def lexic_recognition(request):
+    form = InputForm()
+    context = {
+        'form': form,
+    }
+    return render(request, 'al.html', context)
+
+def update_or_upload_al(request):
+    if request.POST['option'] == 'Ler arquivo':
+        return upload_al_file(request)
+    elif request.POST['option'] == 'Atualizar AL':
+        return update_al_file(request)
+
+
+def update_al_file(request):
+    try:
+        file_content = request.POST['file_content']
+    except:
+        context = {'error1': 'Não há nada para editar.',
+                   'form': InputForm(), }
+        return render(request, 'al.html', context)
+    file_content = request.POST['file_content']
+    filename = settings.MEDIA_ROOT + '/al_file'
+    with open(filename, 'w') as fout:
+        print(file_content, file=fout)
+    context = {
+        'file_content': file_content,
+    }
+    return render(request, 'al.html', context)
+
+
+# def upload_al_file(request):
+#     try:
+#         uploaded_file = request.FILES['alFile']
+#     except:
+#         context = {'error1': 'Você não selecionou um arquivo'}
+#         if 'file_content' in request.POST.keys():
+#             context.update({'file_content': request.POST['file_content']})
+#         else:
+#             context.update({'form': InputForm()})
+#         return render(request, 'al.html', context)
+#     # writing al file
+#     output_file = open(FILENAME_AL, 'w')
+#     # Check size of file, only open if its not too big
+#     if not uploaded_file.multiple_chunks():
+#         file_content = str(uploaded_file.read(), 'utf-8')
+#         output_file.write(file_content)
+#     else:
+#         print('File too big')
+#     output_file.close()
+
+#     # writing af that reconizes the al file
+#     af = create_af_from_al(file_content)
+#     output_file = open(FILENAME_AF_FROM_AL, 'w')
+#     output_file.write(af.string_in_file_format())
+#     output_file.close()
+
+#     context = {
+#         'file_content': file_content,
+#         'af_from_al_content': af,
+#         'label_list': af.label_list,
+#     }
+#     return render(request, 'al.html', context)
+
+def upload_al_file(request):
+    try:
+        uploaded_file = request.FILES['alFile']
+    except:
+        context = {'error1': 'Você não selecionou um arquivo'}
+        if 'file_content' in request.POST.keys():
+            context.update({'file_content': request.POST['file_content']})
+        else:
+            context.update({'form': InputForm()})
+        return render(request, 'al.html', context)
+    # writing al file
+    output_file = open(FILENAME_AL, 'w')
+    # Check size of file, only open if its not too big
+    if not uploaded_file.multiple_chunks():
+        file_content = str(uploaded_file.read(), 'utf-8')
+        output_file.write(file_content)
+    else:
+        print('File too big')
+    output_file.close()
+
+    # writing af that reconizes the al file
+    af = create_af_from_al(file_content)
+    output_file = open(FILENAME_AF_FROM_AL, 'w')
+    output_file.write(af.string_in_file_format())
+    output_file.close()
+    label_list = open(FILENAME_LABEL_LIST, 'w')
+    label_list.write(af.label_list_as_string())
+    label_list.close()
+
+    context = {
+        'file_content': file_content,
+        'af_from_al_content': af,
+    }
+    return render(request, 'al.html', context)
+
+
+
+def download_al_file(request):
+    response = HttpResponse(open(FILENAME_AL, 'rb').read())
+    response['Content-Type'] = 'text/plain'
+    response['Content-Disposition'] = 'attachment; filename=AL.txt'
+    return response
+
+def analyze_pseudocode(request):
+    try:
+        # Read file content from af file made from the al file
+        af_file = open(FILENAME_AF_FROM_AL, 'r')
+        af_from_al_content = af_file.read()
+
+        label_list_file = open(FILENAME_LABEL_LIST, 'r')
+        label_list = dict()
+        # carrega lista de labels
+        for line in label_list_file.read().split(os.linesep):
+            if line == '':
+                continue
+            state, labels = line.split(';', 1)
+            label_list.update({state: labels.split(';')})
+        label_list_file.close()
+
+        file_content = request.POST['file_content']
+        pseudocode = request.POST['pseudocode']
+    except:
+        context = {
+            'error1': 'Não é possivel analisar sem as regras definidas.',
+            'form': InputForm(),
+        }
+        return render(request, 'al.html', context)
+
+    af = read_af_string(af_from_al_content)
+    af.set_label_list(label_list)
+    print(label_list)
+
+    dic = read_pseudocode(pseudocode, af)
+    print(dic)
+
+    context = {
+        'lexic_analysis': dic,
+        'pseudocode': pseudocode,
+        'file_content': file_content,
+        'af_from_al_content': af_from_al_content,
+    }
+    return render(request, 'al.html', context)
