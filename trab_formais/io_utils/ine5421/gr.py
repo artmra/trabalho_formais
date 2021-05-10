@@ -163,26 +163,71 @@ class GR:
             grammar_body += f'{p}\n'
         return grammar_body
 
-    @staticmethod
-    def eliminate_direct_recursion(heads):
-        for head in heads:
-            new_productions = list()
-            if head['left_recursions']:
-                new_productions.append([(nlr + f'{head["symbol"]}\'') for nlr in head['non_left_recursions']])
-                new_productions.append([(lr[1:] + f'{head["symbol"]}\'') for lr in head['left_recursions']])
-                new_productions[1].append('&')
+    def eliminate_direct_recursion(self):
+        # as novas regras de produção são armazenadas aqui
+        new_prod_rules = dict()
+        # para todas as produções, checa recursao direta e as resolve
+        for head, body in self.productions:
+            # eventuais recursividades diretas são adicionadas aqui
+            recursive_prods = []
+            # verifica recursividade direta para produções dessa regra
+            for prod in body:
+                # cabeças com menos 's não podem dar match nos n terminais com mais 's
+                # por exemplo, A''ab começa com A' ou A''; logo, deve-se verificar se o
+                # caractere após o a cabeça da produção não é um '
+                if prod.startswith(head) and prod[len(head)] != '\'':
+                    recursive_prods.append(prod)
 
-                head['productions'] = new_productions[0]
-                head['left_recursions'] = list()
-                head['non_left_recursions'] = new_productions[0]
+            # se houver recursão direta faz as alterações do algoritmo da professora
+            if recursive_prods:
+                # gera o novo n-terminal
+                new_non_terminal = head + "'"
+                while new_non_terminal in self.non_terminals:
+                    new_non_terminal = new_non_terminal + "'"
+                # o adiciona a lista de n-terminais
+                self.non_terminals.append(new_non_terminal)
+                # obtem as producoes nas quais n ocorre recursao direta, e já as modifica
+                # por exemplo, se a cabeça é A, a nova cabeca é A' e a prod era Dbc;
+                # apos a linha abaixo a prod se torna DbcA'
+                head_new_body = [p + new_non_terminal for p in body if p not in recursive_prods]
 
-                new_head = {"symbol": f'{head["symbol"]}\'',
-                            "productions": new_productions[1],
-                            "left_recursions": list(),
-                            "non_left_recursions": new_productions[1]}
-                heads.append(new_head)
+                # altera as producoes nas quais ocorre recursao direta
+                # por exemplo, se a cabeca é A, a nova cabeca é A' e a prod era Abc;
+                # apos a linha abaixo a prod se torna bcA'
+                new_non_terminal_body = [p.replace(head, '', 1) + new_non_terminal for p in recursive_prods]
 
-        return heads
+                # adiciona & para escape
+                new_non_terminal_body.append('&')
+
+                # altera as regras de produção da cabeça atual
+                self.productions[head] = head_new_body
+
+                # adiciona as novas regras de produção no dic auxiliar
+                new_prod_rules.update({new_non_terminal: new_non_terminal_body})
+
+        # adiciona as novas regras de produção à lista de produções da gramática
+        self.productions.update(new_prod_rules)
+
+    # @staticmethod
+    # def eliminate_direct_recursion(heads):
+    #     for head in heads:
+    #         new_productions = list()
+    #         if head['left_recursions']:
+    #             new_productions.append([(nlr + f'{head["symbol"]}\'') for nlr in head['non_left_recursions']])
+    #             new_productions.append([(lr[1:] + f'{head["symbol"]}\'') for lr in head['left_recursions']])
+    #             new_productions[1].append('&')
+    #
+    #             head['productions'] = new_productions[0]
+    #             head['left_recursions'] = list()
+    #             head['non_left_recursions'] = new_productions[0]
+    #
+    #             new_head = {"symbol": f'{head["symbol"]}\'',
+    #                         "productions": new_productions[1],
+    #                         "left_recursions": list(),
+    #                         "non_left_recursions": new_productions[1]}
+    #             heads.append(new_head)
+    #
+    #     return heads
 
     @staticmethod
     def eliminate_indirect_recursions(heads):
