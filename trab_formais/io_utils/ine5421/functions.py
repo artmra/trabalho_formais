@@ -1,6 +1,9 @@
 from .af import AF
 from .gr import GR
 from .er import ER
+from .SLRParser import SLRParser
+from .grammar import Grammar
+
 import os
 
 ERROR = "Número insuficiente de linhas para definir um "
@@ -43,7 +46,6 @@ def read_gr_string(string):
 
 
 def read_gr_lines(lines):
-    print("bl")
     try:
         meta_data = [lines[x].replace(" ", "").replace("/r", "").strip() for x in range(3)]
         transitions = [lines[x].replace(" ", "").replace("/r", "").strip() for x in range(3, len(lines))]
@@ -222,3 +224,12 @@ def create_af_from_al(rules):
     # TODO: Realiza a união dos afs
     # TODO: Relaciona os estados de aceitação aos labels de alguma forma
     # TODO: Retorna o af
+
+def create_grammar_toparse(lines):
+    gr = Grammar(lines)
+    return gr
+
+
+def parse_grammar(gr):
+    slrp = SLRParser(gr)
+    return slrp

@@ -30,6 +30,7 @@ urlpatterns = [
     path('gr/download_gr_file', views.download_gr_file, name='download_gr'),
     path('gr/update_gr_file/', views.update_gr_file, name='update_gr'),
     path('gr/convert_to_af/', views.download_converted_af, name='convert_to_af'),
+    path('gr/parse/', views.parseGrammar, name='parse_grammar'),
 
     path('al', views.lexic_recognition),
     path('al/update_or_upload', views.update_or_upload_al, name='options_al'),

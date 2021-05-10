@@ -49,6 +49,9 @@
 					{% block convert %}
 						<button formaction="{% url 'method' %}">Convert to</button>
 					{% endblock convert %}
+					{% block parse %}
+						<button formaction="{% url 'method' %}">Parse Grammar</button>
+					{% endblock parse %}
 					{% if is_afnd %}
 						{% block determinize %}
 							<button formaction="{% url 'method' %}">Determinize</button>

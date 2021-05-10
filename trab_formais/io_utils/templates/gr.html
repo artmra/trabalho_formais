@@ -50,3 +50,7 @@
 {% block convert %}
 	<button formaction="{% url 'convert_to_af' %}">Convert to AF</button>
 {% endblock convert %}
+
+{% block parse %}
+	<button formaction="{% url 'parse_grammar' %}">Parse</button>
+{% endblock parse %}

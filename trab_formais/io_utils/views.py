@@ -10,7 +10,7 @@ from json import dumps
 import os
 
 from .ine5421.functions import read_af_string, convert_to_gr, union_afs,\
-    read_gr_string, convert_to_af, read_er, create_af_from_al, read_pseudocode
+    read_gr_string, convert_to_af, read_er, create_af_from_al, read_pseudocode, parse_grammar, create_grammar_toparse
 
 FILENAME_AF = settings.MEDIA_ROOT + os.path.sep + 'af_file'
 FILENAME_ER = settings.MEDIA_ROOT + os.path.sep + 'er_file'
@@ -669,3 +669,25 @@ def analyze_pseudocode(request):
         'af_from_al_content': af_from_al_content,
     }
     return render(request, 'al.html', context)
+
+
+#######################################################################################################################
+#                                            Parser Endpoints                                                         #
+#######################################################################################################################
+
+def parseGrammar(request):
+    context = dict()
+    if 'content' in request.POST.keys():
+        gr_string = request.POST['content']
+        try:
+            lines = gr_string.split(os.linesep)
+            gr = create_grammar_toparse('\n'.join(lines[3:]))
+            slrp = parse_grammar(gr)
+        except Exception as e:
+            form = InputForm()
+            context.update({'error1': e,
+                            'form': form})
+    else:
+        context.update({'error1': "Primeiro realize o upload de um arquivo, ou escreva a GR no campo abaixo.",
+                        'form': GrammarForm()})
+    return render(request, 'gr.html', context)
