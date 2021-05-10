@@ -231,6 +231,18 @@ class GR:
                 return non_terminal
         return None
 
+    def get_first_symbol(self, prod):
+        """
+        :return: string
+            não terminal ou terminal que inicia uma produção qualquer;
+        """
+        gr_symbols = list(set(self.non_terminals) + set(self.terminals))
+        # ordena a lista por tamanho
+        gr_symbols.sort(True, key=len)
+        for symbol in gr_symbols:
+            if prod.startswith(symbol):
+                return symbol
+
     def start_with(self, symbol, prod_body):
         """
         :return: list
@@ -241,6 +253,26 @@ class GR:
             if prod.startswith(symbol) and prod[len(symbol)] != "'":
                 return prod_body
         return []
+
+    def eliminar_n_determinismo_direto(self):
+        heads_to_check = list()
+        # inicialmente checa os corpos das produções já existentes
+        heads_to_check.extend(self.production_heads)
+        while heads_to_check:
+            head = heads_to_check.pop()
+            body = self.productions[head]
+            # dicionário de listas, no qual as produções de uma cabeça serão enquadradas com base no seu símbolo inicial
+            prods_equi = dict()
+            for prod in body:
+                symbol = self.get_first_symbol(prod)
+                if symbol in prods_equi.keys():
+                    # adiciona a lista das prods q começam com o mesmo simbolo, caso haja
+                    prods_equi[symbol].append(prod)
+                else:
+                    # cria uma nova lista, caso n exista
+                    prods_equi.update({symbol: [prod]})
+
+
 
     # trabalho do isac começa aqui
 
