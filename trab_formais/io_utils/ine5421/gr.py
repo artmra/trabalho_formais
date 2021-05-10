@@ -178,6 +178,10 @@ class GR:
         self.productions.update(new_prod_rules)
 
     def eliminate_indirect_recursion(self):
+        """
+        :return: boolean
+            não alguma recursão indireta tiver sido identificada retorna true; caso contrário, retorna false.
+        """
         exists_indirect_recursion = False
         # para todas as produções, checa recursao indireta e as transforma em recursao direta
         # EXEMPLO: S -> Abc | de | S
@@ -208,6 +212,7 @@ class GR:
                     new_body.append(prod)
             # altera as produções da cabeça de produção head
             self.productions[head] = new_body
+        return exists_indirect_recursion
 
     def start_with_nonTerminal(self, prod):
         """
