@@ -8,7 +8,7 @@ ERROR = "Número insuficiente de linhas para definir um "
 
 def read_af_file(filename):
     with open(filename, "r") as file:
-        lines = file.readline().split(os.linesep)
+        lines = file.readlines()
         meta_data, transitions = read_lines_af(lines)
     return AF(meta_data, transitions)
 
@@ -30,8 +30,7 @@ def read_lines_af(lines):
 
 def read_gr_file(filename):
     with open(filename, "r") as file:
-        lines = file.readline()
-        lines = lines.split(os.linesep)
+        lines = file.readlines()
         meta_data, productions = read_gr_lines(lines)
     return GR(meta_data, productions)
 
@@ -43,7 +42,6 @@ def read_gr_string(string):
 
 
 def read_gr_lines(lines):
-    print("bl")
     try:
         meta_data = [lines[x].replace(" ", "").replace("/r", "").strip() for x in range(3)]
         transitions = [lines[x].replace(" ", "").replace("/r", "").strip() for x in range(3, len(lines))]

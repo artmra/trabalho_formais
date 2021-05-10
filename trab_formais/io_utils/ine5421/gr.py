@@ -1,3 +1,15 @@
+ERRO_1 = "Deve haver apenas um símbolo inicial.(linha 1)"
+ERRO_2_1 = "O símbolo inicial \""
+ERRO_2_2 = "\" não pertence ao conjunto de não terminais.(linha 2)"
+ERRO_3_1 = "O símbolo \""
+ERRO_3_2 = "\" não pode pertencer aos conjuntos de terminais e não-terminais simultaneamente.(linhas 2 e 3)"
+ERRO_4 = "Todas as produções devem separar a cabeça e corpo da produção com \"->\".(linha "
+# TODO: talvez esse caso nunca ocorra
+ERRO_5 = "As cabeças de produção não podem ser nulas.(linha "
+ERRO_6 = "Não pode haver encolhimento da sentença.(linha "
+ERRO_7 = "Todas as produções de uma \"cabeça de produção\" devem ser definidas em apenas uma linha. (linha "
+
+
 class GR:
     """
     Classe usada para representar uma Gramática Regular
@@ -24,16 +36,6 @@ class GR:
 
 
     """
-    ERRO_1 = "Deve haver apenas um símbolo inicial.(linha 1)"
-    ERRO_2_1 = "O símbolo inicial \""
-    ERRO_2_2 = "\" não pertence ao conjunto de não terminais.(linha 2)"
-    ERRO_3_1 = "O símbolo \""
-    ERRO_3_2 = "\" não pode pertencer aos conjuntos de terminais e não-terminais simultaneamente.(linhas 2 e 3)"
-    ERRO_4 = "Todas as produções devem separar a cabeça e corpo da produção com \"->\".(linha "
-    # TODO: talvez esse caso nunca ocorra
-    ERRO_5 = "As cabeças de produção não podem ser nulas.(linha "
-    ERRO_6 = "Não pode haver encolhimento da sentença.(linha "
-    ERRO_7 = "Todas as produções de uma \"cabeça de produção\" devem ser definidas em apenas uma linha. (linha "
 
     def __init__(self, meta_data, productions):
         """
@@ -46,17 +48,17 @@ class GR:
         """
         # verifica se há apenas um símbolo inicial
         if str(meta_data[0]) == "" or len([str(nonTerminal) for nonTerminal in meta_data[0].split(",")]) > 1:
-            raise Exception(self.ERRO_1)
+            raise Exception(ERRO_1)
         self.start_symbol = str(meta_data[0])
         # verifica se há pelo menos um símbolo
         self.non_terminals = [str(symbol) for symbol in meta_data[1].split(",")]
         if self.start_symbol not in self.non_terminals:
-            raise Exception(self.ERRO_2_1 + self.start_symbol + self.ERRO_2_2)
+            raise Exception(ERRO_2_1 + self.start_symbol + ERRO_2_2)
         # verifica se nenhum dos símbolos não terminais pertence ao conjunto de terminais
         self.terminals = [str(symbol) for symbol in meta_data[2].split(",")]
         for symbol in self.non_terminals:
             if symbol in self.terminals:
-                raise Exception(self.ERRO_3_1 + symbol + self.ERRO_3_2)
+                raise Exception(ERRO_3_1 + symbol + ERRO_3_2)
         # cria as produções
         self.productions = dict()
         for production in productions:
@@ -64,19 +66,19 @@ class GR:
                 head, body = [str(p) for p in production.split("->")]
                 if head == "":
                     line = str(4 + productions.index(production))
-                    raise Exception(self.ERRO_5 + line + ")")
+                    raise Exception(ERRO_5 + line + ")")
                 # TODO: checar se todas os símbolos fazem parte do conjunto de terminais ou não terminais
             except:
                 line = str(4 + productions.index(production))
-                raise Exception(self.ERRO_4 + line + ")")
+                raise Exception(ERRO_4 + line + ")")
             # TODO: implementar a detecção de encolhimento de sentença
             body = [str(b) for b in body.split("|")]
             if len(body) < 1 or body[0] == "":
                 line = str(4 + productions.index(production))
-                raise Exception(self.ERRO_6 + line + ")")
+                raise Exception(ERRO_6 + line + ")")
             if head in self.productions.keys():
                 line = str(4 + productions.index(production))
-                raise Exception(self.ERRO_7 + line + ")")
+                raise Exception(ERRO_7 + line + ")")
             # adiciona essa regra de produção ao dicionário de produções
             self.productions.update({head: body})
         self.production_heads = list(self.productions.keys())
@@ -118,22 +120,15 @@ class GR:
     def eliminate_left_recursion(self):
         # elimina recursões diretas iniciais
         self.eliminate_direct_recursion()
-        n_prods = len(self.productions)
-        while True:
-            # transforma recursões indiretas em diretas
-            if self.eliminate_indirect_recursion():
-                # elimina as recursões diretas geradas
-                self.eliminate_direct_recursion()
-            # verifica se novas regras foram geradas
-            if n_prods == len(self.productions):
-                break
-            n_prods = len(self.productions)
+        # elimina recursões indiretas, enquanto houver
+        while self.eliminate_indirect_recursion():
+            continue
 
     def eliminate_direct_recursion(self):
         # as novas regras de produção são armazenadas aqui
         new_prod_rules = dict()
         # para todas as produções, checa recursao direta e as resolve
-        for head, body in self.productions:
+        for head, body in self.productions.items():
             # eventuais recursividades diretas são adicionadas aqui
             recursive_prods = []
             # verifica recursividade direta para produções dessa regra
@@ -148,9 +143,9 @@ class GR:
             # se houver recursão direta faz as alterações do algoritmo da professora
             if recursive_prods:
                 # gera o novo n-terminal
-                new_non_terminal = head + "'"
+                new_non_terminal = head + "\'"
                 while new_non_terminal in self.non_terminals:
-                    new_non_terminal = new_non_terminal + "'"
+                    new_non_terminal = new_non_terminal + "\'"
                 # o adiciona a lista de n-terminais
                 self.non_terminals.append(new_non_terminal)
                 # obtem as producoes nas quais n ocorre recursao direta, e já as modifica
@@ -176,16 +171,22 @@ class GR:
 
         # adiciona as novas regras de produção à lista de produções da gramática
         self.productions.update(new_prod_rules)
+        self.production_heads = list(self.productions.keys())
 
     def eliminate_indirect_recursion(self):
         """
         :return: boolean
             não alguma recursão indireta tiver sido identificada retorna true; caso contrário, retorna false.
         """
-        exists_indirect_recursion = False
+        need_to_run_again = False
         # para todas as produções, checa recursao indireta e as transforma em recursao direta
         # EXEMPLO: S -> Abc | de | S
-        for head, body in self.productions:
+        production_heads = list()
+        production_heads.extend(self.production_heads)
+        while production_heads:
+            exists_indirect_recursion = False
+            head = production_heads.pop()
+            body = self.productions[head]
             # novo body, no qual eventuais resursões diretas estarão
             new_body = []
             # verifica as produções
@@ -208,11 +209,16 @@ class GR:
                         # EXEMPLO: a seguinte linha adiciona bc no final de todas as produções em prods_to_add
                         #          Sfgbc | Shbc | ijbc
                         new_body.extend([p + prod_sufix for p in prods_to_add])
+                    else:
+                        new_body.append(prod)
                 else:
                     new_body.append(prod)
             # altera as produções da cabeça de produção head
             self.productions[head] = new_body
-        return exists_indirect_recursion
+            if exists_indirect_recursion:
+                need_to_run_again = True
+                self.eliminate_direct_recursion()
+        return need_to_run_again
 
     def start_with_nonTerminal(self, prod):
         """
