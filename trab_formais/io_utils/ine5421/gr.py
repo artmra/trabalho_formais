@@ -137,15 +137,15 @@ class GR:
                 # por exemplo, A''ab começa com A' ou A''; logo, deve-se verificar se o
                 # caractere após o a cabeça da produção não é um '
                 # TODO: lidar com nullpointer
-                if prod.startswith(head) and prod[len(head)] != "'":
+                if prod.startswith(head) and (len(prod) == len(head) or prod[len(head)] != "'"):
                     recursive_prods.append(prod)
 
             # se houver recursão direta faz as alterações do algoritmo da professora
             if recursive_prods:
                 # gera o novo n-terminal
-                new_non_terminal = head + "\'"
+                new_non_terminal = head + "'"
                 while new_non_terminal in self.non_terminals:
-                    new_non_terminal = new_non_terminal + "\'"
+                    new_non_terminal = new_non_terminal + "'"
                 # o adiciona a lista de n-terminais
                 self.non_terminals.append(new_non_terminal)
                 # obtem as producoes nas quais n ocorre recursao direta, e já as modifica
@@ -225,9 +225,9 @@ class GR:
         :return: string
             não terminal que inicia uma produção qualquer; caso a produção n começe com n-terminal, retorna None
         """
+        self.non_terminals.sort(reverse=True, key=len)
         for non_terminal in self.non_terminals:
-            # TODO: lidar com nullpointer
-            if prod.startswith(non_terminal) and prod[len(non_terminal)] != "'":
+            if prod.startswith(non_terminal):
                 return non_terminal
         return None
 
@@ -236,9 +236,9 @@ class GR:
         :return: string
             não terminal ou terminal que inicia uma produção qualquer;
         """
-        gr_symbols = list(set(self.non_terminals) + set(self.terminals))
+        gr_symbols = list(set(self.non_terminals).union(set(self.terminals)))
         # ordena a lista por tamanho
-        gr_symbols.sort(True, key=len)
+        gr_symbols.sort(reverse=True, key=len)
         for symbol in gr_symbols:
             if prod.startswith(symbol):
                 return symbol
@@ -249,8 +249,7 @@ class GR:
             lista contendo todas as produçẽos, caso alguma começe com o símbolo; caso contrário, retorna uma lista vazia
         """
         for prod in prod_body:
-            # TODO: lidar com nullpointer
-            if prod.startswith(symbol) and prod[len(symbol)] != "'":
+            if prod.startswith(symbol) and (len(prod) == len(symbol) or prod[len(symbol)] != "'"):
                 return prod_body
         return []
 
@@ -271,6 +270,33 @@ class GR:
                 else:
                     # cria uma nova lista, caso n exista
                     prods_equi.update({symbol: [prod]})
+            # se o numero de entradas no dicionario prods_equi for menor q o de elementos no corpo, significa que houve
+            # agrupamento, e devem ser criados novos terminais conforme o algoritmo da professora
+            if len(prods_equi) < len(body):
+                # novo corpo da cabeça atual
+                new_body = list()
+                # percorre e cria novos n-terminais para cada lista com mais de uma prod
+                for symbol, prods in prods_equi.items():
+                    if len(prods) == 1:
+                        # não necessita criar um novo n-terminal
+                        # é usado extend apenar pq nesse caso a lista tem apenas um elemento
+                        new_body.extend(prods)
+                        continue
+                    # gera um novo n-terminal
+                    new_non_terminal = head + "'"
+                    while new_non_terminal in self.non_terminals:
+                        new_non_terminal = new_non_terminal + "'"
+                    # popula a lista de produções do novo n-terminal
+                    new_non_terminal_body = [p.replace(symbol, '', 1) for p in prods]
+                    # adiciona a produção alterada ao novo corpo da cabeça atual
+                    new_body.append(symbol+new_non_terminal)
+                    #adiciona as novas regras de produção à gramática
+                    self.productions.update({new_non_terminal: new_non_terminal_body})
+                    self.non_terminals.append(new_non_terminal)
+                    #adiciona o novo n-terminal a lista de cabecas a se checar
+                    heads_to_check.append(new_non_terminal)
+                # atualiza o corpo da cabeça atual
+                self.productions[head] = new_body
 
 
 
