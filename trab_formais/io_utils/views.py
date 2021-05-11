@@ -62,7 +62,7 @@ def update_af_file(request):
         try:
             af = read_af_string(file_content)
             with open(filename, 'w') as fout:
-                print(file_content, file=fout)
+                #print(file_content, file=fout)
                 context.update({'file_content': file_content,
                                 'is_afnd': af.is_afnd,
                                 'afnodes': dumps(af.get_states_as_vis_nodes()),
@@ -509,7 +509,7 @@ def download_er_file(request):
 
 def convertER_to_af(request):
     file_content = request.POST['file_content']
-    print(file_content.split(":")[1].strip())
+    #print(file_content.split(":")[1].strip())
     er = read_er(file_content.split(":")[1].strip())
     converted_af = er.convert_to_af()
 
@@ -657,10 +657,10 @@ def analyze_pseudocode(request):
 
     af = read_af_string(af_from_al_content)
     af.set_label_list(label_list)
-    print(label_list)
+    #print(label_list)
 
     dic = read_pseudocode(pseudocode, af)
-    print(dic)
+    #print(dic)
 
     context = {
         'lexic_analysis': dic,
@@ -682,8 +682,8 @@ def parseGrammar(request):
         try:
             lines = gr_string.split(os.linesep)
             gr = create_grammar_toparse('\n'.join(lines[3:]))
-            #slrp = parse_grammar(gr)
-            print(gr.__str__())
+            slrp = parse_grammar(gr)
+            slrp.print_info()
         except Exception as e:
             form = InputForm()
             context.update({'error1': e,

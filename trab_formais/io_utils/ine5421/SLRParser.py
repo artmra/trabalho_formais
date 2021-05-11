@@ -1,4 +1,5 @@
-from .grammar import Grammar
+from .parserGrammar import ParserGrammar
+
 
 def first_follow(G):
     def union(set_1, set_2):
@@ -7,15 +8,20 @@ def first_follow(G):
 
         return set_1_len != len(set_1)
 
+    # creates the 'first' set to all symbols
     first = {symbol: set() for symbol in G.symbols}
+    # adds to the 'first' set of all terminals, themselves
     first.update((terminal, {terminal}) for terminal in G.terminals)
-    follow = {symbol: set() for symbol in G.nonterminals}
+    # creates the 'follow' set for all non terminals
+    follow = {symbol: set() for symbol in G.non_terminals}
+    # add end of sentence to follow of the start symbol
     follow[G.start].add('$')
 
+    ## while there are symbols to add
     while True:
         updated = False
 
-        for head, bodies in G.grammar.items():
+        for head, bodies in G.productions.items():
             for body in bodies:
                 for symbol in body:
                     if symbol != '^':
@@ -44,24 +50,23 @@ def first_follow(G):
 
 class SLRParser:
     def __init__(self, G):
-        self.G_prime = Grammar(f"{G.start}' -> {G.start}\n{G.grammar_str}")
-        self.max_G_prime_len = len(max(self.G_prime.grammar, key=len))
+        self.G_prime = ParserGrammar(f"{G.start}' -> {G.start}\n{G.grammar_str}")
+        self.max_G_prime_len = len(max(self.G_prime.productions, key=len))
         self.G_indexed = []
 
-        for head, bodies in self.G_prime.grammar.items():
+        for head, bodies in self.G_prime.productions.items():
             for body in bodies:
                 self.G_indexed.append([head, body])
 
         self.first, self.follow = first_follow(self.G_prime)
         self.C = self.items(self.G_prime)
         self.action = list(self.G_prime.terminals) + ['$']
-        self.goto = list(self.G_prime.nonterminals - {self.G_prime.start})
+        self.goto = list(self.G_prime.non_terminals - {self.G_prime.start})
         self.parse_table_symbols = self.action + self.goto
         self.parse_table = self.construct_table()
 
     def CLOSURE(self, I):
         J = I
-        print(J)
 
         while True:
             item_len = len(J)
@@ -71,12 +76,10 @@ class SLRParser:
                     if '.' in body[:-1]:
                         symbol_after_dot = body[body.index('.') + 1]
 
-                        if symbol_after_dot in self.G_prime.nonterminals:
-                            print(symbol_after_dot)
-                            for G_body in self.G_prime.grammar[symbol_after_dot]:
+                        if symbol_after_dot in self.G_prime.non_terminals:
+                            for G_body in self.G_prime.productions[symbol_after_dot]:
                                 J.setdefault(symbol_after_dot, set()).add(
                                     ('.',) if G_body == ('^',) else ('.',) + G_body)
-                                print(J)
 
             if item_len == len(J):
                 return J
@@ -99,7 +102,7 @@ class SLRParser:
 
     def items(self, G_prime):
         C = [self.CLOSURE({G_prime.start: {('.', G_prime.start[:-1])}})]
-        print('passou de C')
+
         while True:
             item_len = len(C)
 
@@ -145,7 +148,7 @@ class SLRParser:
                     else:  # CASE 2 c
                         parse_table[i]['$'] = 'acc'
 
-            for A in self.G_prime.nonterminals:  # CASE 3
+            for A in self.G_prime.non_terminals:  # CASE 3
                 j = self.GOTO(I, A)
 
                 if j in self.C:
@@ -170,15 +173,15 @@ class SLRParser:
 
         print()
         fprint('TERMINALS', self.G_prime.terminals)
-        fprint('NONTERMINALS', self.G_prime.nonterminals)
+        fprint('NONTERMINALS', self.G_prime.non_terminals)
         fprint('SYMBOLS', self.G_prime.symbols)
 
         print('\nFIRST:')
-        for head in self.G_prime.grammar:
+        for head in self.G_prime.productions:
             print(f'{head:>{self.max_G_prime_len}} = {{ {", ".join(self.first[head])} }}')
 
         print('\nFOLLOW:')
-        for head in self.G_prime.grammar:
+        for head in self.G_prime.productions:
             print(f'{head:>{self.max_G_prime_len}} = {{ {", ".join(self.follow[head])} }}')
 
         width = max(len(c) for c in {'ACTION'} | self.G_prime.symbols) + 2
@@ -211,47 +214,6 @@ class SLRParser:
         print_line()
         print()
 
-    def generate_automaton(self):
-        automaton = Digraph('automaton', node_attr={'shape': 'record'})
-
-        for i, I in enumerate(self.C):
-            I_html = f'<<I>I</I><SUB>{i}</SUB><BR/>'
-
-            for head, bodies in I.items():
-                for body in bodies:
-                    I_html += f'<I>{head:>{self.max_G_prime_len}}</I> &#8594;'
-
-                    for symbol in body:
-                        if symbol in self.G_prime.nonterminals:
-                            I_html += f' <I>{symbol}</I>'
-                        elif symbol in self.G_prime.terminals:
-                            I_html += f' <B>{symbol}</B>'
-                        else:
-                            I_html += f' {symbol}'
-
-                    I_html += '<BR ALIGN="LEFT"/>'
-
-            automaton.node(f'I{i}', f'{I_html}>')
-
-        for r in range(len(self.C)):
-            for c in self.parse_table_symbols:
-                if isinstance(self.parse_table[r][c], int):
-                    automaton.edge(f'I{r}', f'I{self.parse_table[r][c]}', label=f'<<I>{c}</I>>')
-
-                elif 's' in self.parse_table[r][c]:
-                    i = self.parse_table[r][c][self.parse_table[r][c].index('s') + 1:]
-
-                    if '/' in i:
-                        i = i[:i.index('/')]
-
-                    automaton.edge(f'I{r}', f'I{i}', label=f'<<B>{c}</B>>' if c in self.G_prime.terminals else c)
-
-                elif self.parse_table[r][c] == 'acc':
-                    automaton.node('acc', '<<B>accept</B>>', shape='none')
-                    automaton.edge(f'I{r}', 'acc', label='$')
-
-        automaton.view()
-
     def LR_parser(self, w):
         buffer = f'{w} $'.split()
         pointer = 0
@@ -274,7 +236,7 @@ class SLRParser:
                 break
 
             elif not self.parse_table[s][a]:
-                results['action'].append('ERROR: input cannot be parsed by given grammar')
+                results['action'].append('ERROR: input cannot be parsed by given productions')
 
                 break
 

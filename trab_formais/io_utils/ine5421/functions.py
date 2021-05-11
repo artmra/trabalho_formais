@@ -2,7 +2,7 @@ from .af import AF
 from .gr import GR
 from .er import ER
 from .SLRParser import SLRParser
-from .grammar import Grammar
+from .parserGrammar import ParserGrammar
 
 import os
 
@@ -33,8 +33,9 @@ def read_lines_af(lines):
 
 def read_gr_file(filename):
     with open(filename, "r") as file:
-        lines = file.readline()
-        lines = lines.split(os.linesep)
+        #lines = file.readline()
+        #lines = lines.split(os.linesep)
+        lines = file.readlines()
         meta_data, productions = read_gr_lines(lines)
     return GR(meta_data, productions)
 
@@ -226,7 +227,7 @@ def create_af_from_al(rules):
     # TODO: Retorna o af
 
 def create_grammar_toparse(lines):
-    gr = Grammar(lines)
+    gr = ParserGrammar(lines)
     return gr
 
 

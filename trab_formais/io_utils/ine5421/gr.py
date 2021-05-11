@@ -1,4 +1,4 @@
-from .grammar import Grammar
+from .parserGrammar import ParserGrammar
 
 class GR:
     """
