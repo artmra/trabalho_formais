@@ -325,6 +325,7 @@ class GR:
                     heads_to_check.append(new_non_terminal)
                 # atualiza o corpo da cabeça atual, pois houveram mudanças
                 self.productions[head] = new_body
+                
     def first(string, gr, productions_dict):
         first_ = set()
 
