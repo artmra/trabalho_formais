@@ -682,7 +682,8 @@ def parseGrammar(request):
         try:
             lines = gr_string.split(os.linesep)
             gr = create_grammar_toparse('\n'.join(lines[3:]))
-            slrp = parse_grammar(gr)
+            #slrp = parse_grammar(gr)
+            print(gr.__str__())
         except Exception as e:
             form = InputForm()
             context.update({'error1': e,

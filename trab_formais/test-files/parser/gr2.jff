@@ -1,0 +1,8 @@
+E
+E,T,F
++,*,(,),id
+E -> E + T
+E -> T
+T -> T * F | F
+F -> ( E )
+F -> id
