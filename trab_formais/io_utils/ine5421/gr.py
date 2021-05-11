@@ -253,13 +253,37 @@ class GR:
                 return prod_body
         return []
 
-    def eliminar_n_determinismo_direto(self):
+    def eliminar_n_determinismo(self):
+        self.eliminar_n_determinismo_direto()
+        print(f'\n\n{self}')
+        n_prods = 0
+        while n_prods != len(self.productions):
+            n_prods = len(self.productions)
+            self.eliminar_n_determinismo_direto(remover_indireto=True)
+            print(f'\n\n{self}')
+
+    def eliminar_n_determinismo_direto(self, remover_indireto=False):
         heads_to_check = list()
         # inicialmente checa os corpos das produções já existentes
         heads_to_check.extend(self.production_heads)
         while heads_to_check:
             head = heads_to_check.pop()
             body = self.productions[head]
+            if remover_indireto:
+                # lista auxiliar no qual os potenciais n-determinismos diretos serão explicitados
+                provisory_body = list()
+                # deve percorrer body mudando o primeiro simbolo de cada produção pelas suas produções(se o mesmo for um n-terminal)
+                for prod in body:
+                    symbol = self.get_first_symbol(prod)
+                    # se o simbolo for um n-terminal cria novas produções
+                    if symbol in self.non_terminals and symbol != head:
+                        # parte da produção original sem o n-terminal
+                        sufix = prod.replace(symbol, '', 1)
+                        # cria novas produções adicionando o sufixo da antiga às produções do n-terminal
+                        provisory_body.extend([p + sufix for p in self.productions[symbol]])
+                    else:
+                        provisory_body.append(prod)
+                body = provisory_body
             # dicionário de listas, no qual as produções de uma cabeça serão enquadradas com base no seu símbolo inicial
             prods_equi = dict()
             for prod in body:
@@ -292,12 +316,12 @@ class GR:
                     new_body.append(symbol+new_non_terminal)
                     #adiciona as novas regras de produção à gramática
                     self.productions.update({new_non_terminal: new_non_terminal_body})
+                    self.production_heads = list(self.productions.keys())
                     self.non_terminals.append(new_non_terminal)
                     #adiciona o novo n-terminal a lista de cabecas a se checar
                     heads_to_check.append(new_non_terminal)
                 # atualiza o corpo da cabeça atual
                 self.productions[head] = new_body
-
 
 
     # trabalho do isac começa aqui
