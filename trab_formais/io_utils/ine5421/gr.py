@@ -269,6 +269,7 @@ class GR:
         while heads_to_check:
             head = heads_to_check.pop()
             body = self.productions[head]
+            # se for verdadeiro tentará transformar o não determinismo indireto em direto
             if remover_indireto:
                 # lista auxiliar no qual os potenciais n-determinismos diretos serão explicitados
                 provisory_body = list()
@@ -283,8 +284,9 @@ class GR:
                         provisory_body.extend([p + sufix for p in self.productions[symbol]])
                     else:
                         provisory_body.append(prod)
+                # usa as produções alteradas para a eliminação de eventuais não determinismos diretos que foram gerados
                 body = provisory_body
-            # dicionário de listas, no qual as produções de uma cabeça serão enquadradas com base no seu símbolo inicial
+            # dicionário de listas, no qual as produções de uma cabeça serão agrupadas com base no seu símbolo inicial
             prods_equi = dict()
             for prod in body:
                 symbol = self.get_first_symbol(prod)
@@ -295,7 +297,8 @@ class GR:
                     # cria uma nova lista, caso n exista
                     prods_equi.update({symbol: [prod]})
             # se o numero de entradas no dicionario prods_equi for menor q o de elementos no corpo, significa que houve
-            # agrupamento, e devem ser criados novos terminais conforme o algoritmo da professora
+            # agrupamento, e devem ser criados novos n-terminais conforme o algoritmo da professora; caso não haja as
+            # produções não são alteradas
             if len(prods_equi) < len(body):
                 # novo corpo da cabeça atual
                 new_body = list()
@@ -320,7 +323,7 @@ class GR:
                     self.non_terminals.append(new_non_terminal)
                     #adiciona o novo n-terminal a lista de cabecas a se checar
                     heads_to_check.append(new_non_terminal)
-                # atualiza o corpo da cabeça atual
+                # atualiza o corpo da cabeça atual, pois houveram mudanças
                 self.productions[head] = new_body
 
 
