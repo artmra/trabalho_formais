@@ -23,8 +23,8 @@ body {
   .column {
     float: left;
     width: 50%;
+    height: 50%;
     padding: 10px;
-    height: 300px; /* Should be removed. Only for demonstration */
   }
   
   /* Clear floats after the columns */
@@ -88,8 +88,9 @@ body {
     /* Add shadows to create the "card" effect */
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
     transition: 0.3s;
-      width: 100%;
-      text-align: center;
+    width: 100%;
+    text-align: center;
+    /* padding-bottom: 20%; */
   }
 
   /* On mouse-over, add a deeper shadow */
