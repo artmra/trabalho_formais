@@ -136,9 +136,11 @@ class GR:
                 # cabeças com menos 's não podem dar match nos n terminais com mais 's
                 # por exemplo, A''ab começa com A' ou A''; logo, deve-se verificar se o
                 # caractere após o a cabeça da produção não é um '
-                # TODO: lidar com nullpointer
                 if prod.startswith(head) and (len(prod) == len(head) or prod[len(head)] != "'"):
                     recursive_prods.append(prod)
+
+            #retira eventuais duplicatas
+            recursive_prods = list(set(recursive_prods))
 
             # se houver recursão direta faz as alterações do algoritmo da professora
             if recursive_prods:
@@ -164,10 +166,10 @@ class GR:
                     self.terminals.append('&')
 
                 # altera as regras de produção da cabeça atual
-                self.productions[head] = head_new_body
+                self.productions[head] = list(set(head_new_body))
 
                 # adiciona as novas regras de produção no dic auxiliar
-                new_prod_rules.update({new_non_terminal: new_non_terminal_body})
+                new_prod_rules.update({new_non_terminal: list(set(new_non_terminal_body))})
 
         # adiciona as novas regras de produção à lista de produções da gramática
         self.productions.update(new_prod_rules)
@@ -255,24 +257,31 @@ class GR:
 
     def eliminar_n_determinismo(self):
         self.eliminar_n_determinismo_direto()
-        print(f'\n\n{self}')
         n_prods = 0
-        while n_prods != len(self.productions):
+        # roda enquanto novos n-terminais forem definidos e um loop n for identificado
+        # apenas para garantir retorno, esse algoritmo considera que caso o loop execute mais
+        # de 100 vezes há algum loop
+        numero_execucoes = 0
+        while n_prods != len(self.productions) and numero_execucoes != 100:
             n_prods = len(self.productions)
             self.eliminar_n_determinismo_direto(remover_indireto=True)
-            print(f'\n\n{self}')
+            numero_execucoes = numero_execucoes + 1
 
     def eliminar_n_determinismo_direto(self, remover_indireto=False):
         heads_to_check = list()
         # inicialmente checa os corpos das produções já existentes
         heads_to_check.extend(self.production_heads)
+        # variável que será usada para identificar um possível loop. Não é um mecanismo muito robusto, pois apenas conta
+        # ate determinado numero. Mesmo assim é o suficiente para pelo menos fazer o algoritmo retornar em caso de loop
+        possivel_loop = 0
         while heads_to_check:
+            possivel_loop = possivel_loop + 1
             head = heads_to_check.pop()
             body = self.productions[head]
             # se for verdadeiro tentará transformar o não determinismo indireto em direto
             if remover_indireto:
-                # lista auxiliar no qual os potenciais n-determinismos diretos serão explicitados
-                provisory_body = list()
+                # conjunto auxiliar no qual os potenciais n-determinismos diretos serão explicitados
+                provisory_body = set()
                 # deve percorrer body mudando o primeiro simbolo de cada produção pelas suas produções(se o mesmo for um n-terminal)
                 for prod in body:
                     symbol = self.get_first_symbol(prod)
@@ -281,21 +290,29 @@ class GR:
                         # parte da produção original sem o n-terminal
                         sufix = prod.replace(symbol, '', 1)
                         # cria novas produções adicionando o sufixo da antiga às produções do n-terminal
-                        provisory_body.extend([p + sufix for p in self.productions[symbol]])
+                        provisory_body.update(set([p + sufix for p in self.productions[symbol]]))
                     else:
-                        provisory_body.append(prod)
+                        provisory_body.add(prod)
                 # usa as produções alteradas para a eliminação de eventuais não determinismos diretos que foram gerados
-                body = provisory_body
+                body = list(provisory_body)
             # dicionário de listas, no qual as produções de uma cabeça serão agrupadas com base no seu símbolo inicial
             prods_equi = dict()
             for prod in body:
                 symbol = self.get_first_symbol(prod)
                 if symbol in prods_equi.keys():
-                    # adiciona a lista das prods q começam com o mesmo simbolo, caso haja
-                    prods_equi[symbol].append(prod)
+                    if len(symbol) == len(prod):
+                        # prods de apenas um símbolos devem permanecer inalteradas
+                        prods_equi.update({symbol + '_unitario': [prod]})
+                    else:
+                        # adiciona a lista das prods q começam com o mesmo simbolo, caso haja
+                        prods_equi[symbol].append(prod)
                 else:
-                    # cria uma nova lista, caso n exista
-                    prods_equi.update({symbol: [prod]})
+                    if len(symbol) == len(prod):
+                        # prods de apenas um símbolos devem permanecer inalteradas
+                        prods_equi.update({symbol + '_unitario': [prod]})
+                    else:
+                        # cria uma nova lista, caso n exista
+                        prods_equi.update({symbol: [prod]})
             # se o numero de entradas no dicionario prods_equi for menor q o de elementos no corpo, significa que houve
             # agrupamento, e devem ser criados novos n-terminais conforme o algoritmo da professora; caso não haja as
             # produções não são alteradas
@@ -313,8 +330,8 @@ class GR:
                     new_non_terminal = head + "'"
                     while new_non_terminal in self.non_terminals:
                         new_non_terminal = new_non_terminal + "'"
-                    # popula a lista de produções do novo n-terminal
-                    new_non_terminal_body = [p.replace(symbol, '', 1) for p in prods]
+                    # popula a lista(sem eventuais repeticoes) de produções do novo n-terminal
+                    new_non_terminal_body = list(set([p.replace(symbol, '', 1) for p in prods]))
                     # adiciona a produção alterada ao novo corpo da cabeça atual
                     new_body.append(symbol+new_non_terminal)
                     #adiciona as novas regras de produção à gramática
@@ -325,198 +342,5 @@ class GR:
                     heads_to_check.append(new_non_terminal)
                 # atualiza o corpo da cabeça atual, pois houveram mudanças
                 self.productions[head] = new_body
-    def first(string, gr, productions_dict):
-        first_ = set()
-
-        if string in gr.non_terminals:
-            alternatives = productions_dict[string]
-
-            for alternative in alternatives:
-                first_2 = GR.first(alternative, gr, productions_dict)
-                first_ = first_ | first_2
-
-        elif string in gr.terminals:
-            first_ = {string}
-
-        elif string == '&':
-            first_ = {'&'}
-
-        else:
-            first_2 = GR.first(string[0], gr, productions_dict)
-            if '&' in first_2:
-                i = 1
-                while '&' in first_2:
-                    first_ = first_ | (first_2 - {'&'})
-                    if string[i:] in gr.terminals:
-                        first_ = first_ | {string[i:]}
-                        break
-                    elif string[i:] == '':
-                        first_ = first_ | {'&'}
-                        break
-                    first_2 = GR.first(string[i:], gr, productions_dict)
-                    first_ = first_ | first_2 - {'&'}
-                    i += 1
-            else:
-                first_ = first_ | first_2
-
-        return first_
-
-    def follow(nT, gr, productions_dict):
-        # print("inside follow({})".format(nT))
-        follow_ = set()
-        # print("FOLLOW", FOLLOW)
-        prods = productions_dict.items()
-        if nT == gr.start_symbol:
-            follow_ = follow_ | {'$'}
-        for nt, rhs in prods:
-            print("nt to rhs", nt,rhs)
-            for alt in rhs:
-                for char in alt:
-                    if char == nT:
-                        following_str = alt[alt.index(char) + 1:]
-                        if following_str == '':
-                            if nt == nT:
-                                continue
-                            else:
-                                follow_ = follow_ | GR.follow(nt, gr, productions_dict)
-                        else:
-                            follow_2 = GR.first(following_str, gr, productions_dict)
-                            if '&' in follow_2:
-                                follow_ = follow_ | follow_2 - {'&'}
-                                follow_ = follow_ | GR.follow(nt, gr, productions_dict)
-                            else:
-                                follow_ = follow_ | follow_2
-        # print("returning for follow({})".format(nT),follow_)
-        return follow_
-
-    # FIRST E FOLLOWS DA BRANCH FIRST E FOLLOWS
-    def get_firsts_follows(self):
-        terminals = self.terminals
-        non_terminals = self.non_terminals
-        starting_symbol = self.start_symbol
-
-        productions = self.productions
-
-        productions_dict = {}
-
-        for nT in non_terminals:
-            productions_dict[nT] = []
-
-        for p in productions:
-            for s in productions[p]:
-                productions_dict[p].append(s)
-
-        FIRST = {}
-        FOLLOW = {}
-
-        for non_terminal in non_terminals:
-            FIRST[non_terminal] = set()
-
-        for non_terminal in non_terminals:
-            FOLLOW[non_terminal] = set()
-
-        for non_terminal in non_terminals:
-            FIRST[non_terminal] = FIRST[non_terminal] | GR.first(non_terminal, self, productions_dict)
-
-        FOLLOW[starting_symbol] = FOLLOW[starting_symbol] | {'$'}
-        for non_terminal in non_terminals:
-            FOLLOW[non_terminal] = FOLLOW[non_terminal] | GR.follow(non_terminal, self, productions_dict)
-
-        return FIRST, FOLLOW
-
-
-    # trabalho do isac começa aqui
-
-    # def eliminate_left_recursion(self, grammar):
-    #     print('in eliminate_left_recursion on representations')
-    #     heads = list()
-    #     lines = grammar.splitlines()
-    #     while ('' in lines):
-    #         lines.remove('')
-    #
-    #     print('lines')
-    #     print(lines)
-    #     for line in lines:
-    #         if '->' in line:
-    #             symbol = line[0]
-    #             line = line.replace(' ', '')
-    #             productions = line.split('->')[1].split('|')
-    #             left_recursions = [p for p in productions if p[0] == symbol]
-    #             non_left_recursions = [p for p in productions if p[0] != symbol]
-    #
-    #             d = {"symbol": symbol,
-    #                  "productions": productions,
-    #                  "left_recursions": left_recursions,
-    #                  "non_left_recursions": non_left_recursions}
-    #
-    #             heads.append(d)
-    #
-    #     heads = self.eliminate_direct_recursion(heads)
-    #     heads = self.eliminate_indirect_recursions(heads)
-    #     heads = self.eliminate_direct_recursion(heads)
-    #
-    #     start_symbol = lines[0]
-    #     heads_symbols = [head['symbol'] for head in heads]
-    #     heads_symbols = set(heads_symbols)
-    #     heads_symbols = ','.join(heads_symbols)
-    #     transitions = lines[2]
-    #
-    #     grammar = f'{start_symbol}\n{heads_symbols}\n{transitions}\n{self.get_grammar_body(heads)}'
-    #     return grammar
-    #
-    # @staticmethod
-    # def get_grammar_body(heads):
-    #     grammar_body = str()
-    #     for h in heads:
-    #         grammar_body += f'{h["symbol"]} -> '
-    #         p = ' | '.join([p for p in h['productions']])
-    #         grammar_body += f'{p}\n'
-    #     return grammar_body
-
-    # @staticmethod
-    # def eliminate_direct_recursion(heads):
-    #     for head in heads:
-    #         new_productions = list()
-    #         if head['left_recursions']:
-    #             new_productions.append([(nlr + f'{head["symbol"]}\'') for nlr in head['non_left_recursions']])
-    #             new_productions.append([(lr[1:] + f'{head["symbol"]}\'') for lr in head['left_recursions']])
-    #             new_productions[1].append('&')
-    #
-    #             head['productions'] = new_productions[0]
-    #             head['left_recursions'] = list()
-    #             head['non_left_recursions'] = new_productions[0]
-    #
-    #             new_head = {"symbol": f'{head["symbol"]}\'',
-    #                         "productions": new_productions[1],
-    #                         "left_recursions": list(),
-    #                         "non_left_recursions": new_productions[1]}
-    #             heads.append(new_head)
-    #
-    #     return heads
-
-    # @staticmethod
-    # def eliminate_indirect_recursions(heads):
-    #     for head in heads:
-    #         for production in head['productions']:
-    #             p = production[0]
-    #             if p.upper() == p and p.upper() != head['symbol']:
-    #                 for head2 in heads:
-    #                     if head2['symbol'] == p:
-    #                         for production2 in head2['productions']:
-    #                             p2 = production2[0]
-    #                             if p2 == head['symbol']:
-    #                                 for phead in head['productions']:
-    #                                     head2['productions'].append(phead + production2[1:])
-    #                                 head2['productions'].remove(production2)
-    #                                 break
-    #
-    #     for head in heads:
-    #         head['left_recursions'] = list()
-    #         head['non_left_recursions'] = list()
-    #         for production in head['productions']:
-    #             if production[0] == head['symbol']:
-    #                 head['left_recursions'].append(production)
-    #             else:
-    #                 head['non_left_recursions'].append(production)
-    #
-    #     return heads
+            if possivel_loop == 100:
+                break
