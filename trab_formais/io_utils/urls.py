@@ -30,6 +30,8 @@ urlpatterns = [
     path('gr/download_gr_file', views.download_gr_file, name='download_gr'),
     path('gr/update_gr_file/', views.update_gr_file, name='update_gr'),
     path('gr/convert_to_af/', views.download_converted_af, name='convert_to_af'),
+    path('gr/eliminate_lr_gr/', views.eliminate_left_recursion_gr, name='eliminate_lr_gr'),
+    path('gr/eliminate_nd_gr/', views.eliminate_n_determinism_gr, name='eliminate_nd_gr'),
     path('gr/parse/', views.parseGrammar, name='parse_grammar'),
 
     path('al', views.lexic_recognition),

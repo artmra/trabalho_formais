@@ -17,7 +17,7 @@ class ParserGrammar:
             head, _, bodies = production.partition(' -> ')
 
             if not head.isupper():
-                raise ValueError(
+                raise Exception(
                     f'\'{head} -> {bodies}\': Head \'{head}\' is not capitalized to be treated as a nonterminal.')
 
             if not self.start:
@@ -29,7 +29,7 @@ class ParserGrammar:
 
             for body in bodies:
                 if '^' in body and body != ('^',):
-                    raise ValueError(f'\'{head} -> {" ".join(body)}\': Null symbol \'^\' is not allowed here.')
+                    raise Exception(f'\'{head} -> {" ".join(body)}\': Null symbol \'^\' is not allowed here.')
 
                 self.productions[head].add(body)
 

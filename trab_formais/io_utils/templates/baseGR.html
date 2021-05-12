@@ -56,6 +56,15 @@
 							<button formaction="{% url 'method' %}">Determinize</button>
 						{% endblock determinize %}
 					{% endif %}
+                    <br>
+
+                    {% block eliminate_lr %}
+						<button formaction="{% url 'method' %}">Convert to</button>
+					{% endblock eliminate_lr %}
+
+                    {% block eliminate_nd %}
+						<button formaction="{% url 'method' %}">Convert to</button>
+					{% endblock eliminate_nd %}
 
 					</div>
                     <div class="column">

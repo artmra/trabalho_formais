@@ -409,6 +409,60 @@ def download_gr_file(request):
     return response
 
 
+def eliminate_left_recursion_gr(request):
+    context = dict()
+    form = InputForm()
+    try:
+        file_content = request.POST['content']
+        if file_content == "":
+            context.update({'error1': 'Não há nada para editar.',
+                            'form': GrammarForm()})
+    except:
+        context.update({'error1': 'Não há uma gramatica para eliminar a recursão',
+                        'form': GrammarForm()})
+    if 'error1' not in context.keys():
+        filename = settings.MEDIA_ROOT + '/gr_file'
+        try:
+            gr = read_gr_string(file_content)
+            gr.eliminate_left_recursion()
+            with open(filename, 'w') as fout:
+                print(gr.string_in_file_format(), file=fout)
+            customize_gr_form(form, gr, gr.string_in_file_format())
+            context.update({'form': form,
+                            'content': gr.string_in_file_format()})
+        except Exception as e:
+            context.update({'error1': e})
+            context.update({'form': GrammarForm()})
+    return render(request, 'gr.html', context)
+
+
+def eliminate_n_determinism_gr(request):
+    context = dict()
+    form = InputForm()
+    try:
+        file_content = request.POST['content']
+        if file_content == "":
+            context.update({'error1': 'Não há nada para editar.',
+                            'form': GrammarForm()})
+    except:
+        context.update({'error1': 'Não há uma gramatica para eliminar a recursão',
+                        'form': GrammarForm()})
+    if 'error1' not in context.keys():
+        filename = settings.MEDIA_ROOT + '/gr_file'
+        try:
+            gr = read_gr_string(file_content)
+            gr.eliminar_n_determinismo()
+            with open(filename, 'w') as fout:
+                print(gr.string_in_file_format(), file=fout)
+            customize_gr_form(form, gr, gr.string_in_file_format())
+            context.update({'form': form,
+                            'content': gr.string_in_file_format()})
+        except Exception as e:
+            context.update({'error1': e})
+            context.update({'form': GrammarForm()})
+    return render(request, 'gr.html', context)
+
+
 def download_converted_af(request):
     context = dict()
     if 'content' in request.POST.keys():
@@ -676,6 +730,7 @@ def analyze_pseudocode(request):
 
 def parseGrammar(request):
     context = dict()
+    form = InputForm()
     if 'content' in request.POST.keys():
         gr_string = request.POST['content']
         parse_string = request.POST['text_recognize']
@@ -686,13 +741,15 @@ def parseGrammar(request):
             gr = create_grammar_toparse('\n'.join(lines[3:]))
             slrp = parse_grammar(gr)
             _, ms = slrp.parse_string(parse_string)
-            context.update({'msg': ms,
-                            'content': gr_string})
 
+            # Mantendo conteudo da gr
+            form_gr = read_gr_string(gr_string)
+            customize_gr_form(form, form_gr, form_gr.string_in_file_format())
+            context.update({'msg': ms,
+                            'form': form})
         except Exception as e:
-            # form = InputForm()
             context.update({'error3': e,
-                            'form': InputForm()})
+                            'form': form})
     else:
         context.update({'error1': "Primeiro realize o upload de um arquivo, ou escreva a GR no campo abaixo.",
                         'form': GrammarForm()})

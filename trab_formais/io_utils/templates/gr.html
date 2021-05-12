@@ -48,9 +48,17 @@
 {% endblock download %}
 
 {% block convert %}
-	<button formaction="{% url 'convert_to_af' %}">Converter para AF</button>
+	<button formaction="{% url 'convert_to_af' %}">Convert to AF</button>
 {% endblock convert %}
 
 {% block parse %}
-	<button formaction="{% url 'parse_grammar' %}">Verificar</button>
+	<button formaction="{% url 'parse_grammar' %}">Parse</button>
 {% endblock parse %}
+
+{% block eliminate_lr %}
+	<button formaction="{% url 'eliminate_lr_gr' %}">Eliminar Recursão a Esquerda</button>
+{% endblock eliminate_lr %}
+
+{% block eliminate_nd %}
+	<button formaction="{% url 'eliminate_nd_gr' %}">Fatorar GR</button>
+{% endblock eliminate_nd %}
