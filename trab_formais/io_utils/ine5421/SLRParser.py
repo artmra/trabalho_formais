@@ -229,20 +229,3 @@ class SLRParser:
                 break
 
         return accepted, message
-
-    def print_LR_parser(self, results):
-        def print_line():
-            print(f'{"".join(["+" + ("-" * (max_len + 2)) for max_len in max_lens.values()])}+')
-
-        max_lens = {key: max(len(value) for value in results[key]) for key in results}
-        justs = {'step': '>', 'stack': '', 'symbols': '', 'input': '>', 'action': ''}
-
-        print_line()
-        print(''.join(
-            [f'| {history[0]:^{max_len}} ' for history, max_len in zip(results.values(), max_lens.values())]) + '|')
-        print_line()
-        for i, step in enumerate(results['step'][:-1], 1):
-            print(''.join([f'| {history[i]:{just}{max_len}} ' for history, just, max_len in
-                           zip(results.values(), justs.values(), max_lens.values())]) + '|')
-
-        print_line()
