@@ -1,0 +1,5 @@
+E
+E,B
+c,d
+E -> BB
+B -> cB | d
