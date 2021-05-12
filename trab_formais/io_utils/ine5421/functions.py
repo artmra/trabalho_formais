@@ -18,7 +18,8 @@ def read_af_file(filename):
 
 
 def read_af_string(string):
-    lines = string.split(os.linesep)
+    string = string.replace("\r", "")
+    lines = string.split("\n")
     meta_data, transitions = read_lines_af(lines)
     return AF(meta_data, transitions)
 
@@ -40,7 +41,8 @@ def read_gr_file(filename):
 
 
 def read_gr_string(string):
-    lines = string.split(os.linesep)
+    string = string.replace("\r", "")
+    lines = string.split("\n")
     meta_data, productions = read_gr_lines(lines)
     return GR(meta_data, productions)
 

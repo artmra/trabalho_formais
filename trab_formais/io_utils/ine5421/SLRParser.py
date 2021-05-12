@@ -196,16 +196,18 @@ class SLRParser:
 
             #TODO traduzir erros
             if a not in self.parse_table[s]:
-                message = f'ERROR: unrecognized symbol {a}'
-                return accepted, message
+                raise Exception('Palavra Rejeitada!\nSimbolo desconhecido {}'.format(a))
+                # message = f'ERROR: Simbolo desconhecido {a}'
+                # return accepted, message
 
             elif not self.parse_table[s][a]:
-                message = 'ERROR: input cannot be parsed by given productions'
-                return accepted, message
+                raise Exception('Palavra Rejeitada!\nEntrada não foi reconhecida')
+                # message = 'ERROR: Entrada não foi reconhecida input cannot be parsed by given productions'
+                # return accepted, message
 
-            elif '/' in self.parse_table[s][a]:
-                message = f'ERROR: reduce conflict at state {s}, symbol {a}'
-                return accepted, message
+            # elif '/' in self.parse_table[s][a]:
+            #     message = f'ERROR: reduce conflict at state {s}, symbol {a}'
+            #     return accepted, message
 
             elif self.parse_table[s][a].startswith('s'):
                 stack.append(self.parse_table[s][a][1:])
@@ -225,7 +227,7 @@ class SLRParser:
 
             elif self.parse_table[s][a] == 'acc':
                 accepted = True
-                message = 'ACCEPTED!'
+                message = 'Palavra Aceita!'
                 break
 
         return accepted, message

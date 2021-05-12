@@ -678,17 +678,21 @@ def parseGrammar(request):
     context = dict()
     if 'content' in request.POST.keys():
         gr_string = request.POST['content']
+        parse_string = request.POST['text_recognize']
+        # form = request.POST['form']
+        print(gr_string)
         try:
             lines = gr_string.split(os.linesep)
             gr = create_grammar_toparse('\n'.join(lines[3:]))
             slrp = parse_grammar(gr)
-            rst, ms = slrp.parse_string("id + id * id")
-            context.update({'form': ms})
+            _, ms = slrp.parse_string(parse_string)
+            context.update({'msg': ms,
+                            'content': gr_string})
 
         except Exception as e:
-            form = InputForm()
-            context.update({'error1': e,
-                            'form': form})
+            # form = InputForm()
+            context.update({'error3': e,
+                            'form': InputForm()})
     else:
         context.update({'error1': "Primeiro realize o upload de um arquivo, ou escreva a GR no campo abaixo.",
                         'form': GrammarForm()})

@@ -10,14 +10,16 @@
 			<p>{% block title %} TIPO {% endblock title %}</p>
 		</div>
 
-		<div class="card" style="width: 100%">
+		<div class="card">
 			<div class="card-header">
 				<span style="text-align: left">{% block header-text %}Leitura de Tipo{% endblock header-text %}</span>
 			</div>
 			<div class="card-body">
-				{% block form1 %}
+				<div class="row">
+					<div class="column">
+						{% block form1 %}
 					<form enctype="multipart/form-data" method="POST" action="{% url 'upload_method' %}">
-				{% endblock form1 %}
+					{% endblock form1 %}
 					{% csrf_token %}
 					{% block choose-file %}<input type="file" name="file-type" id="file-type">{% endblock choose-file %}
 					<!--	esse bloco, tal como o de atualização, pode ser desnecessário					-->
@@ -49,16 +51,30 @@
 					{% block convert %}
 						<button formaction="{% url 'method' %}">Convert to</button>
 					{% endblock convert %}
-					{% block parse %}
-						<button formaction="{% url 'method' %}">Parse Grammar</button>
-					{% endblock parse %}
 					{% if is_afnd %}
 						{% block determinize %}
 							<button formaction="{% url 'method' %}">Determinize</button>
 						{% endblock determinize %}
 					{% endif %}
 
+					</div>
+                    <div class="column">
+						<h6>Reconhecimento de Sentenças</h6>
+						<br>
+						{% if error3 %}
+						<li class="error">{{ error3 }}</li>
+						{% endif %}
+						<textarea cols="60" rows="15" name="text_recognize" id="text_recognize">{{ text_recognize }}</textarea>
+						<br>
+						{% block parse %}
+						<button formaction="{% url 'method' %}">Parse Grammar</button>
+						{% endblock parse %}
+						<br>
+						{{ msg }}
 
+                    </div>
+
+				</div>
 				</form>
 
 				<div class="af">
