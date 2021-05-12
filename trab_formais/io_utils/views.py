@@ -683,7 +683,9 @@ def parseGrammar(request):
             lines = gr_string.split(os.linesep)
             gr = create_grammar_toparse('\n'.join(lines[3:]))
             slrp = parse_grammar(gr)
-            slrp.print_info()
+            rst, ms = slrp.parse_string("id + id * id")
+            context.update({'form': ms})
+
         except Exception as e:
             form = InputForm()
             context.update({'error1': e,
