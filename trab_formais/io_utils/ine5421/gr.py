@@ -62,6 +62,8 @@ class GR:
         # cria as produções
         self.productions = dict()
         for production in productions:
+            if production == "":
+                continue
             try:
                 head, body = [str(p) for p in production.split("->")]
                 if head == "":
@@ -108,10 +110,22 @@ class GR:
             string representando o formato a GR seguindo o formato dos arquivos '.jff'.
         """
         productions = ""
+        print("kk")
         # format the production dict entries to the file format
         for head, body in self.productions.items():
-            body_str = " | ".join(body)
-            productions = productions + f"{head} -> {body_str}\n"
+            # body_str = " | ".join(body)
+            aux = ""
+            for b in body:
+                if aux != "":
+                    aux = aux + " |"
+                while True:
+                    symbol = self.get_first_symbol(b)
+                    aux = aux + " " + symbol
+                    b = b.replace(symbol, "", 1)
+                    if b == "":
+                        break
+
+            productions = productions + f"{head} -> {aux}\n"
         return f"{self.start_symbol}\n" \
                f"{','.join(self.non_terminals)}\n" \
                f"{','.join(self.terminals)}\n" \

@@ -441,6 +441,7 @@ def eliminate_n_determinism_gr(request):
     form = InputForm()
     try:
         file_content = request.POST['content']
+
         if file_content == "":
             context.update({'error1': 'Não há nada para editar.',
                             'form': GrammarForm()})
@@ -452,6 +453,7 @@ def eliminate_n_determinism_gr(request):
         try:
             gr = read_gr_string(file_content)
             gr.eliminar_n_determinismo()
+            var = gr.string_in_file_format()
             with open(filename, 'w') as fout:
                 print(gr.string_in_file_format(), file=fout)
             customize_gr_form(form, gr, gr.string_in_file_format())
@@ -732,6 +734,7 @@ def parseGrammar(request):
     context = dict()
     form = InputForm()
     if 'content' in request.POST.keys():
+        print("kkj1")
         gr_string = request.POST['content']
         parse_string = request.POST['text_recognize']
         # form = request.POST['form']

@@ -25,23 +25,23 @@ def first_follow(G):
         for head, bodies in G.productions.items():
             for body in bodies:
                 for symbol in body:
-                    if symbol != '^':
-                        updated |= union(first[head], first[symbol] - set('^'))
+                    if symbol != '&':
+                        updated |= union(first[head], first[symbol] - set('&'))
 
-                        if '^' not in first[symbol]:
+                        if '&' not in first[symbol]:
                             break
                     else:
-                        updated |= union(first[head], set('^'))
+                        updated |= union(first[head], set('&'))
                 else:
-                    updated |= union(first[head], set('^'))
+                    updated |= union(first[head], set('&'))
 
                 aux = follow[head]
                 for symbol in reversed(body):
-                    if symbol == '^':
+                    if symbol == '&':
                         continue
                     if symbol in follow:
-                        updated |= union(follow[symbol], aux - set('^'))
-                    if '^' in first[symbol]:
+                        updated |= union(follow[symbol], aux - set('&'))
+                    if '&' in first[symbol]:
                         aux = aux | first[symbol]
                     else:
                         aux = first[symbol]
@@ -87,7 +87,7 @@ class SLRParser:
                             # for all the production on which the symbol after dot is the head
                             for G_body in self.G_prime.productions[symbol_after_dot]:
                                 J.setdefault(symbol_after_dot, set()).add(
-                                    ('.',) if G_body == ('^',) else ('.',) + G_body)
+                                    ('.',) if G_body == ('&',) else ('.',) + G_body)
 
             if item_len == len(J):
                 return J
@@ -158,7 +158,7 @@ class SLRParser:
                     elif body[-1] == '.' and head != self.G_prime.start:
                         # "(...) for all a in FOLLOW(A); here A may not be S' (G_prime.start)
                         for j, (G_head, G_body) in enumerate(self.G_indexed):
-                            if G_head == head and (G_body == body[:-1] or G_body == ('^',) and body == ('.',)):
+                            if G_head == head and (G_body == body[:-1] or G_body == ('&',) and body == ('.',)):
                                 for f in self.follow[head]:
                                     if parse_table[i][f]:
                                         parse_table[i][f] += '/'
@@ -201,7 +201,7 @@ class SLRParser:
                 # return accepted, message
 
             elif not self.parse_table[s][a]:
-                raise Exception('Palavra Rejeitada!\nEntrada não foi reconhecida')
+                raise Exception('Palavra Rejeitada!\nEntrada não foi reconhecida {} {}'.format(s, a))
                 # message = 'ERROR: Entrada não foi reconhecida input cannot be parsed by given productions'
                 # return accepted, message
 
@@ -218,7 +218,7 @@ class SLRParser:
             elif self.parse_table[s][a].startswith('r'):
                 head, body = self.G_indexed[int(self.parse_table[s][a][1:])]
 
-                if body != ('^',):
+                if body != ('&',):
                     stack = stack[:-len(body)]
                     symbols = symbols[:-len(body)]
 

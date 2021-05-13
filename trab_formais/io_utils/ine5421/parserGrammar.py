@@ -28,13 +28,13 @@ class ParserGrammar:
             bodies = {tuple(body.split()) for body in ' '.join(bodies.split()).split('|')}
 
             for body in bodies:
-                if '^' in body and body != ('^',):
-                    raise Exception(f'\'{head} -> {" ".join(body)}\': Null symbol \'^\' is not allowed here.')
+                if '&' in body and body != ('&',):
+                    raise Exception(f'\'{head} -> {" ".join(body)}\': Null symbol \'&\' is not allowed here.')
 
                 self.productions[head].add(body)
 
                 for symbol in body:
-                    if not symbol.isupper() and symbol != '^':
+                    if not symbol.isupper() and symbol != '&':
                         self.terminals.add(symbol)
                     elif symbol.isupper():
                         self.non_terminals.add(symbol)
